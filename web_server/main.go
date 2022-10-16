@@ -25,7 +25,14 @@ func web_server() {
 		fmt.Fprintf(w, "Hi")
 	})
 
-	http.HandleFunc("/index", HttpFileHandler)
+	http.HandleFunc("/simpleTextResponse", SimpleTextResponse)
+	http.HandleFunc("/simpleListResponse", SimpleListResponse)
+	http.HandleFunc("/simpleMapResponse", SimpleMapResponse)
+	http.HandleFunc("/simpleFileResponse", HttpFileHandler)
+	http.HandleFunc("/urlResponse", UrlResponse)
+	http.HandleFunc("/methodResponse", MethodResponse)
+	http.HandleFunc("/headersResponse", HeadersResponse)
+	http.HandleFunc("/queryStringResponse", QueryStringResponse)
 
 	log.Fatal(http.ListenAndServe(":8081", nil))
 
@@ -48,8 +55,7 @@ func get_request() {
 }
 
 func main() {
-
-	//web_server()
-	get_request()
+	web_server()
+	//get_request()
 
 }
