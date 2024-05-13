@@ -1,0 +1,565 @@
+Unit Testing
+behave as you intended
+standard library package
+provides support
+essential support
+
+
+Sum: func TestXxx(*testing.T)
+            if result != expected {
+                // Inside the unit test functions, the output value of functions verify expected values and call the method Errorf to signal failure.
+                t.Errorf("Result: %d, Expected: %d", result, expected)
+
+                Sum: if result != expected {
+                        t.Errorf("Result: %d, Expected: %d", result, expected)
+                }
+
+                Sum: Failnow, Fatal
+
+Sum: go test
+go test –v
+go test –v –cover
+
+            if testing.Short() { // Checks whether the short flag is provided
+                t.Skip("Skipping test in short mode")
+            }
+
+
+Sum: t.Parallel()
+
+
+How It Works
+    The go test command identifies unit test functions by looking into the following patterns in functions:
+        func TestXxx(*testing.T)
+
+    Requirements:
+        1. You write unit test functions with the prefix Test followed by an alphanumeric string that starts with
+        an uppercase letter.
+        2. To write unit test functions, you must create a test suite file with a name that ends with _test.go that contains unit test functions with the signature func TestXxx(*testing.T).
+        3. You typically put the test suite file in the same package that is being tested.
+
+            Build the packages using go build or go install = it excludes the test suite files
+            Run the unit tests using go test                = it includes test suite files.
+
+    Command: For help with running go test run the following command: go help test
+
+    Command: For help on various flags used by the go test command run the following command: go help testflag
+
+    Listing 8-1. Package calc with Two Utility Functions in calc.go
+
+        Code:
+
+            package calc
+            import "math"
+            // Sum returns sum of integer values
+            func Sum(nums ...int) int {
+                result := 0
+                for _, v := range nums {
+                result += v }
+                return result
+            }
+
+            // Average returns average of integer values
+            // The output provides a float64 value in two decimal points
+
+            func Average(nums ...int) float64 {
+                    sum := 0
+                    for _, v := range nums {
+                        sum += v
+                    }
+                    result := float64(sum) / float64(len(nums))
+                    pow := math.Pow(10, float64(2))
+                    digit := pow * result
+                    round := math.Floor(digit)
+                    return round / pow
+            }
+
+    Listing 8-2 shows the unit tests for testing the behavior of the functions Sum and Average in package calc.
+
+        Unit Test:
+            package calc
+            import "testing"
+
+            // Test case for the Sum function
+            // The name of the unit test functions started with the Test prefix, followed by a string that starts with an uppercase letter.
+            func TestSum(t *testing.T) {
+                    input, expected := []int{7, 8, 10},
+                }
+            }
+
+            result := Sum(input...)
+            if result != expected {
+                // Inside the unit test functions, the output value of functions verify expected values and call the method Errorf to signal failure.
+                t.Errorf("Result: %d, Expected: %d", result, expected)
+
+            // Test case for the Average function
+            func TestAverage(t *testing.T) {
+                    input, expected := []int{7, 8, 10}, 8.33
+                    result := Average(input...)
+                    if result != expected {
+                            t.Errorf("Result: %f, Expected: %f", result, expected) // To signal failure of a test case, you can call Error, Fail, or related methods of type testing.T.
+                    }
+            }
+
+
+    Explanation:
+        Error, Fail:
+            The Error and Fail methods signal the failure of a test case, but it will continue the execution of remaining unit tests.
+            If you want to stop the execution whenever a test case fails, you can call the method FailNow or Fatal of type testing.T.
+            The method FailNow calls the method Fail and stops the execution. Fatal is equivalent to Log followed by FailNow.
+            In these unit test functions, the method Errorf is used to signal the failure of test cases.
+                if result != expected {
+                        t.Errorf("Result: %d, Expected: %d", result, expected)
+                }
+
+                Failnow, Fatal
+
+
+Running Unit Tests
+    // Convert to Table
+    To run the unit tests, run the go test command from your package directory:
+        Command:
+            go test
+
+    You should see output similar to the following:
+        Output:
+            PASS
+            ok      github.com/shijuvar/go-recipes/ch08/calc        0.233s
+
+    The output of this test is not very descriptive. The verbose (-v) flag provides descriptive information when you execute unit tests.
+        Command:
+            go test –v
+
+    This results in output similar to the following:
+        Output:
+            === RUN   TestSum
+            --- PASS: TestSum (0.00s)
+            === RUN   TestAverage
+            --- PASS: TestAverage (0.00s)
+            PASS
+            ok      github.com/shijuvar/go-recipes/ch08/calc        0.121s
+
+    Note that unit tests are executing in a sequential manner.
+
+
+
+
+Test Coverage
+    // Convert to table [command, description, code, output]
+    When you run unit tests, you can measure the amount of testing performed by the test cases.
+    The go test command provides a coverage (-cover) flag that helps you to get coverage of the test cases written against your code.
+    Let’s run the unit tests with the coverage flag to determine test coverage of package calc:
+        Command:
+            go test –v –cover
+
+    You should see output similar to the following:
+        === RUN   TestSum
+        --- PASS: TestSum (0.00s)
+        === RUN   TestAverage
+        --- PASS: TestAverage (0.00s)
+        PASS
+        coverage: 100.0% of statements
+        ok      github.com/shijuvar/go-recipes/ch08/calc        0.139s
+
+    This test output shows that package calc has 100% test coverage.
+
+
+
+
+8-2. Skipping Long-Running Tests
+
+    How do you skip execution of some unit tests when you run the unit tests?
+
+    Solution
+        The go test command allows you to pass a short (-short) flag that lets you skip some unit tests during execution.
+
+    How It Works
+        When you execute unit tests you might need to skip some of them.
+        Sometimes, you might want to prevent some unit tests from being executed in some use cases.
+
+        Use case:
+            For example, you might want to skip some time-consuming unit tests.
+            Another example scenario is that some unit tests might have a dependency to a configuration file or to an environment variable which is not available during the execution of those tests, so you can skip execution of those tests instead of letting them fail.
+
+        The type testing.T provides a method Skip that can be used to skip unit tests.
+        To skip those unit tests, you can give a signal by providing a short (-short) flag to the go test command.
+
+    Listing 8-3. Unit Tests in Which One Test is Skipped in Execution package calc
+        import (
+                "testing"
+                "time"
+                )
+
+        // Test case for the Sum function
+        func TestSum(t *testing.T) {
+            input, expected := []int{7, 8, 10}, 25
+            result := Sum(input...)
+            if result != expected {
+                    t.Errorf("Result: %d, Expected: %d", result, expected)
+            }
+        }
+        // Test case for the Sum function
+        func TestAverage(t *testing.T) {
+            input, expected := []int{7, 8, 10}, 8.33
+            result := Average(input...)
+            if result != expected {
+                    t.Errorf("Result: %f, Expected: %f", result, expected)
+            }
+        }
+        // TestLongRun is a time-consuming test
+        func TestLongRun(t *testing.T) {
+
+            if testing.Short() { // Checks whether the short flag is provided
+                t.Skip("Skipping test in short mode")
+            }
+            // Long running implementation goes here
+            time.Sleep(5 * time.Second)
+        }
+
+    In these unit tests, you can skip test execution of the function TestLongRun if you can provide a short flag to the go test command.
+    The function testing.Short is used to identify whether a short flag is provided.
+
+    If you are not providing the short flag, function TestLongRun will run as a normal unit test.
+    Let’s run the tests by providing the short flag:
+        go test -v -short
+    You should see output similar to the following:
+        === RUN TestSum
+        --- PASS: TestSum (0.00s)
+        === RUN TestAverage
+        --- PASS: TestAverage (0.00s) === RUN TestLongRun
+        --- SKIP: TestLongRun (0.00s)
+                calc_test.go:36: Skipping test in short mode
+        PASS
+        ok      github.com/shijuvar/go-recipes/ch08/calc        0.241s
+
+    The test output shows that the unit test function TestLongRun was skipped during the execution. Now let’s run the tests without providing the short flag:
+        go test -v
+
+    This should result in output similar to the following:
+        === RUN TestSum
+        --- PASS: TestSum (0.00s)
+        === RUN TestAverage
+        --- PASS: TestAverage (0.00s)
+        === RUN TestLongRun
+        --- PASS: TestLongRun (5.00s)
+        PASS
+        ok github.com/shijuvar/go-recipes/ch08/calc 5.212s
+
+    The test output shows that the function TestLongRun was running as normal.
+
+
+
+
+
+
+
+
+
+
+
+
+8-3. Writing Benchmark Tests
+
+    How do you benchmark Go code by writing tests?
+
+    Solution
+        The package testing allows you to write tests for benchmark Go functions.
+        To write benchmarks, write functions with the pattern func BenchmarkXxx(*testing.B), which are executed by the go test command when its -bench flag is provided.
+
+    How It Works
+        When you run tests with the go test command, you can pass the -bench flag to execute bechmark tests wherein functions with pattern func BenchmarkXxx(*testing.B) are considered benchmarks. You write benchmark functions inside the _test.go files. Listing 8-4 shows benchmark tests to benchmark functions of package calc (see Listing 8-1).
+
+    Listing8-4. UnitTestswithBenchmarksinPackagecalc package calc
+        import "testing"
+        // Test case for function Sum
+        func TestSum(t *testing.T) {
+                input, expected := []int{7, 8, 10}, 25
+                result := Sum(input...)
+                if result != expected {
+                        t.Errorf("Result: %d, Expected: %d", result, expected)
+        } }
+        // Test case for function Average
+        func TestAverage(t *testing.T) {
+                input, expected := []int{7, 8, 10}, 8.33
+                result := Average(input...)
+                if result != expected {
+                        t.Errorf("Result: %f, Expected: %f", result, expected)
+        } }
+        // Benchmark for function Sum
+        func BenchmarkSum(b *testing.B) {
+                for i := 0; i < b.N; i++ {
+                        Sum(7, 8, 10)
+        } }
+        // Benchmark for function Average
+        func BenchmarkAverage(b *testing.B) {
+                for i := 0; i < b.N; i++ {
+                        Average(7, 8, 10)
+        } }
+
+
+        Two benchmark tests are written to benchmark the performance of the functions in package calc.
+        You must run the target code for b.N times by using a loop construct to execute the functions to benchmark in a reliable manner.
+        The value of the b.N will be adjusted during the execution of benchmark tests.
+        The benchmarktestsgiveyouareliableresponsetimeperloop.Whenyouprovidethe-benchflagtogo test command, you need to provide a regular expression to indicate which benchmark tests are to be included for execution.
+
+        To run all benchmarks, use -bench . or -bench=.
+
+        Let’s run the tests by providing -bench .
+            go test -v -bench .
+
+        You should see output similar to the following:
+            === RUN   TestSum
+            --- PASS: TestSum (0.00s)
+            === RUN   TestAverage
+            --- PASS: TestAverage (0.00s)
+            BenchmarkSum-4          100000000
+            BenchmarkAverage-4      10000000
+            PASS
+            ok      github.com/shijuvar/go-recipes/ch08/calc
+
+
+
+
+
+
+
+
+
+
+
+
+8-4. Running Unit Tests in Parallel
+    Problem
+        How do you execute unit tests in parallel?
+    Solution
+        You can run unit tests in parallel by calling the method Parallel of type testing.T.
+        Inside the unit test functions, a call to the method Parallel signals that this test is to be run in parallel with other parallel tests.
+
+    How It Works
+        By default, unit tests are executing sequentially.
+        If you want to run a unit test in parallel to speed up the execution, call the method Parallel inside the test function before writing the test logic.
+        The method Parallel indicates that this unit test is to be run in parallel with other parallel tests.
+        You can call the method Parallel for any unit test functions you would like to run in parallel.
+
+    Listing 8-5 provides a couple of unit tests to be run in parallel.
+    Listing8-5. UnitTeststoBeRuninParallel
+
+        package calc
+        import (
+                "testing"
+        "time" )
+        // Test case for the function Sum to be executed in parallel
+        212
+         23.1 ns/op
+        224 ns/op
+        4.985s
+        func TestSumInParallel(t *testing.T) {
+                t.Parallel()
+                // Delaying 1 second for the sake of demonstration
+                time.Sleep(1 * time.Second)
+                input, expected := []int{7, 8, 10}, 25
+                result := Sum(input...)
+                if result != expected {
+                        t.Errorf("Result: %d, Expected: %d", result, expected)
+        } }
+        // Test case for the function Sum to be executed in parallel
+        func TestAverageInParallel(t *testing.T) {
+                t.Parallel()
+                // Delaying 1 second for the sake of demonstration
+                time.Sleep(2 * time.Second)
+                input, expected := []int{7, 8, 10}, 8.33
+                result := Average(input...)
+                if result != expected {
+                        t.Errorf("Result: %f, Expected: %f", result, expected)
+        } }
+
+    Inside the test functions, the method Parallel is called as the first code statement to signal that this test is to be run in parallel so that execution of a parallel test will not wait for completion of the test function and run in parallel with other parallel tests.
+        t.Parallel()
+
+    If you write unit test functions with parallel tests and normal tests mixed, it will execute normal tests sequentially and parallel tests in parallel with other parallel tests. Run the tests with the go test command:
+        go test -v
+
+    You should see output similar to the following:
+        === RUN   TestSumInParallel
+        === RUN   TestAverageInParallel
+        --- PASS: TestSumInParallel (1.00s)
+        --- PASS: TestAverageInParallel (2.00s)
+        PASS
+        ok      github.com/shijuvar/go-recipes/ch08/calc        2.296s
+
+    The output shows that both TestSumInParallel and TestAverageInParallel are running in parallel and didn’t wait for the completion of one test to run another.
+
+
+
+
+
+8-6. Testing HTTP Applications
+    Problem
+        How do you write tests for HTTP applications?
+    Solution
+        The standard library package net/http/httptest provides utilities for testing HTTP applications.
+
+    How It Works
+        Package httptest provides support for testing HTTP applications. To test HTTP applications, package httptest provides the ResponseRecorder and Server struct types.
+        ResponseRecorder is an implementation of http.ResponseWriter that records HTTP responses to inspect the response in unit tests. You can verify the behavior of http.ResponseWriter in tests by using the ResponseRecorder that records mutations of http.ResponseWriter in handler functions. When you test your HTTP applications using ResponseRecorder, you don’t need to use an HTTP server. A ResponseRecorder instance is created by calling the function NewRecorder of package httptest.
+
+        w := httptest.NewRecorder()
+
+        A Server is a test HTTP server listening on a system-chosen port on the local loopback interface (127.0.0.1), for use in end-to-end HTTP tests. This allows you to test your HTTP applications using an HTTP server by sending HTTP requests to the test server from an HTTP client. The test HTTP server is created by calling the function NewServer of package httptest by providing an instance of http.Handler.
+
+    server := httptest.NewServer(r) // r is an instance of http.Handler
+
+    An HTTP API Server
+
+    Listing 8-7 shows an example HTTP API server created for writing unit tests with package httptest later on. Listing8-7. ExampleHTTPServerinmain.go
+        package main
+        import (
+                "encoding/json"
+                "net/http"
+                "github.com/gorilla/mux"
+        )
+        // User model
+        type User struct {
+                FirstName string `json:"firstname"`
+                LastName  string `json:"lastname"`
+                Email     string `json:"email"`
+        }
+        // getUsers serves requests for Http Get to "/users"
+        func getUsers(w http.ResponseWriter, r *http.Request) {
+        data := []User{
+                User{
+        },
+        FirstName: "Shiju",
+        LastName:  "Varghese",
+        Email:     "shiju@xyz.com",
+                User{
+                        FirstName: "Irene",
+                        LastName:  "Rose",
+                        Email:     "irene@xyz.com",
+        }, }
+        users, err := json.Marshal(data)
+        if err != nil {
+                w.WriteHeader(http.StatusInternalServerError)
+        return }
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+
+        }
+        func main() {
+                r := mux.NewRouter()
+                r.HandleFunc("/users", getUsers).Methods("GET")
+                http.ListenAndServe(":8080", r)
+        }
+
+    Listing 8-7 creates a simple HTTP server with single endpoint: HTTP Get to "/users" that returns a collection User entity.
+
+    Testing HTTP Applications Using ResponseRecorder
+
+    Listing 8-8 shows a test with ResponseRecorder for testing the HTTP server created in Listing 8-7. Listing8-8. TestingHTTPAPIServerUsingResponseRecorderinmain_test.go
+
+        package main
+        import (
+                "net/http"
+        )
+        "net/http/httptest"
+        "testing"
+        "github.com/gorilla/mux"
+        // TestGetUsers test HTTP Get to "/users" using ResponseRecorder
+        func TestGetUsers(t *testing.T) {
+                r := mux.NewRouter()
+                r.HandleFunc("/users", getUsers).Methods("GET")
+                req, err := http.NewRequest("GET", "/users", nil)
+                if err != nil {
+                        t.Error(err)
+                w := httptest.NewRecorder()
+                r.ServeHTTP(w, req)
+                if w.Code != 200 {
+                        t.Errorf("HTTP Status expected: 200, got: %d", w.Code)
+        } }
+        In TestGetUsers, an HTTP multiplexer is configured for testing HTTP Get requests on "/users". r := mux.NewRouter()
+        r.HandleFunc("/users", getUsers).Methods("GET")
+        }
+
+    An HTTP request object is created using http.NewRequest to to call method ServeHTTP of handler of HTTP Get on "/users". A nil value is provided as the parameter for the HTTP request body to the function NewRequest because it is an HTTP Get request. You may provide a value for the HTTP request body for creating HTTP request object on HTTP Posts.
+        req, err := http.NewRequest("GET", "/users", nil)
+        if err != nil {
+        t.Error(err)
+    A ResponseRecorder object is created using httptest.NewRecorder to record the returned HTTP responses for later inspection in tests.
+        w := httptest.NewRecorder()
+
+    Method ServeHTTP of the HTTP handler is called by providing ResponseRecorder and Request objects to invoke the HTTP Get request on "/users". This will invoke the handler function getUsers. r.ServeHTTP(w, req)
+
+    The ResponseRecorder object records the returned HTTP responses (mutations on http. ResponseWriter in handler function) so that it is available for inspection. You can see that the HTTP response returns an HTTP status code of 200.
+        if w.Code != 200 {
+             t.Errorf("HTTP Status expected: 200, got: %d", w.Code)
+        }
+        }
+
+    Let’srunthetestwiththego testcommand:
+        go test -v
+    You should see output similar to the following:
+        === RUN   TestGetUsers
+        --- PASS: TestGetUsers (0.00s)
+        PASS
+        ok      github.com/shijuvar/go-recipes/ch08/httptest
+        Testing HTTP Application Using Server
+        0.353s
+
+    In Listing 8-8, you wrote tests using the ResponseRecorder to inspect the values of HTTP responses. This type is sufficient for inspecting the behavior of HTTP responses. Package httptest also provides a type Server that lets you create an HTTP server for testing so that you can run your tests via HTTP pipeline by sending HTTP requests to the test HTTP server using an HTTP client.
+
+    Listing 8-9 shows a test with a test Server for testing the HTTP API server created in Listing 8-7.
+
+    Listing8-9. TestingHTTPAPIServerUsingServerinmain_test.go
+        package main
+        import (
+                "fmt"
+        )
+        "net/http"
+        "net/http/httptest"
+        "testing"
+        "github.com/gorilla/mux"
+        // TestGetUsersWithServer test HTTP Get to "/users" using Server
+        func TestGetUsersWithServer(t *testing.T) {
+                r := mux.NewRouter()
+                r.HandleFunc("/users", getUsers).Methods("GET")
+                server := httptest.NewServer(r)
+                defer server.Close()
+                usersURL := fmt.Sprintf("%s/users", server.URL)
+                request, err := http.NewRequest("GET", usersURL, nil)
+                res, err := http.DefaultClient.Do(request)
+                if err != nil {
+                        t.Error(err)
+        }
+                if res.StatusCode != 200 {
+                        t.Errorf("HTTP Status expected: 200, got: %d", res.StatusCode)
+        } }
+
+    In the test function TestGetUsersWithServer, the HTTP multiplexer is configured for testing HTTP Get requests on "/users".
+        r := mux.NewRouter()
+        r.HandleFunc("/users", getUsers).Methods("GET")
+
+    The test HTTP server is created by calling function httptest.NewServer. The function NewServer starts and returns a new HTTP server. The method Close of Server is added to the list of deferred functions to shut down the test Server when the test is finished.
+        server := httptest.NewServer(r)
+        defer server.Close()
+
+    An HTTP request is created using function http.NewRequest and sends an HTTP request using the method Do of HTTP client object. A nil value is provided as the parameter for the HTTP request body
+    to the function NewRequest because it is an HTTP Get request. The HTTP client is created using http. DefaultClient, and then calls method Do to send an HTTP request to the test Server that returns an HTTP response.
+
+        usersURL:= fmt.Sprintf("%s/users", server.URL)
+        request, err := http.NewRequest("GET", usersURL, nil)
+        res, err := http.DefaultClient.Do(request)
+
+    You see that the HTTP response returns an HTTP status code of 200.
+        if res.StatusCode != 200 {
+            t.Errorf("HTTP Status expected: 200, got: %d", res.StatusCode)
+        }
+
+    Let’srunthetestwiththego testcommand:
+        go test -v
+    You should see output similar to the following:
+        === RUN   TestGetUsersWithServer
+        --- PASS: TestGetUsersWithServer (0.01s)
+        PASS
+        ok      github.com/shijuvar/go-recipes/ch08/httptest
+
+

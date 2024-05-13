@@ -1,0 +1,102 @@
+Functions
+Simple functions
+Variadic functions
+Function return types
+Functions as variables
+Function accepting other functions
+
++-------+--------------------------+------------------------------------+------------------------------+------------------------------+----------------------------------+---------------------------------------------------------------+
+| Sr.No | Basic Function           | Naming Return values               | Function with Return types   | Variadic Functions           | Functions as variables           | Functions accepting other functions                           |
++-------+--------------------------+------------------------------------+------------------------------+------------------------------+----------------------------------+---------------------------------------------------------------+
+| 1     | func Add(x, y int) int { | func Add(x, y int) ( result int) { | func Sum( nums ...int) int { | func Sum( nums ...int) int { | fn := func(sum int) (int, int) { | package main                                                  |
+|       |  return x + y            |  result = x + y                    |  total := 0                  |  total := 0                  |  x := sum * a / b                | import (                                                      |
+|       | }                        |  return                            |  for _, num := range nums {  |  for _, num := range nums {  |  y := sum - x                    |  "fmt"                                                        |
+|       |                          | }                                  |  total += num                |  total += num                |  return x, y                     | )                                                             |
+|       |                          |                                    |  }                           |  }                           |  }                               | func SplitValues(f func(sum int) (int, int)) {                |
+|       |                          |                                    |  return total                |  return total                |                                  |  x, y := f(35)                                                |
+|       |                          |                                    | }                            | }                            |                                  |  fmt.Println(x, y)                                            |
+|       |                          |                                    |                              |                              |                                  |  x, y = f(50)                                                 |
+|       |                          |                                    | total := Sum(1, 2, 3, 4)     | total := Sum(1, 2, 3, 4)     |                                  |  fmt.Println(x, y)                                            |
+|       |                          |                                    |                              |                              |                                  | }                                                             |
+|       |                          |                                    |                              |                              |                                  | func main() {                                                 |
+|       |                          |                                    |                              |                              |                                  |  a, b := 5, 8                                                 |
+|       |                          |                                    |                              |                              |                                  |  fn := func(sum int) (int, int) {                             |
+|       |                          |                                    |                              |                              |                                  |  x := sum * a / b                                             |
+|       |                          |                                    |                              |                              |                                  |  y := sum - x                                                 |
+|       |                          |                                    |                              |                              |                                  |  return x, y                                                  |
+|       |                          |                                    |                              |                              |                                  |  }                                                            |
+|       |                          |                                    |                              |                              |                                  |  // Passing function value as an argument to another function |
+|       |                          |                                    |                              |                              |                                  |  SplitValues(fn)                                              |
+|       |                          |                                    |                              |                              |                                  |  // Calling the function value by providing argument          |
+|       |                          |                                    |                              |                              |                                  |  x, y := fn(20)                                               |
+|       |                          |                                    |                              |                              |                                  |  fmt.Println(x, y)                                            |
+|       |                          |                                    |                              |                              |                                  | }                                                             |
++-------+--------------------------+------------------------------------+------------------------------+------------------------------+----------------------------------+---------------------------------------------------------------+
+
+Arrays
+Different ways of init arrays
+Iterating over arrays
+
+
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+| Sr.No | Definition | Arrays                                                   | Slices                                                     | Maps | Description                                                                                                        |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+|       |            | var x [5]int                                             | var x []int                                                |      |                                                                                                                    |
+|       |            |                                                          | y:= make ([]int, 3,5)y:= make ([]int, 3)y[0] = 10y[1] = 10 |      |                                                                                                                    |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+|       |            | x[0]=5                                                   |                                                            |      |                                                                                                                    |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+|       |            | y := [5]int {5,10,15,20,25}                              | z:= []int {10,20,30}                                       |      | A slice z is created with zero elements of value. An empty slice is useful when you want to return empty           |
+|       |            | langs := [4]string{0: "Go", 3: "Julia"}langs[1] = "Rust" | z:= []int {0:10, 2:30}z:= []int{}                          |      | collections from functions. Let’s say that you provide a function that queries data from a database table          |
+|       |            | langs[2] = "Scala"                                       |                                                            |      | and returns a slice by filling in the data of the table. Here you can return an empty slice if the table doesn’t   |
+|       |            |                                                          |                                                            |      | contain any data. Note that nil slices and empty slices are different. If z is an empty slice, a code expression z |
+|       |            |                                                          |                                                            |      | == nil returns false , but if it is a nil slice, the expression z == nil returns true .                            |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+|       |            | z := [...] { 5,10,15,20,25}                              |                                                            |      |                                                                                                                    |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+|       |            | langs := [4]string{"Go", "Rust", "Scala","Julia"}        |                                                            |      |                                                                                                                    |
+|       |            | for i := 0; i < len(langs); i++ {                        |                                                            |      |                                                                                                                    |
+|       |            |  fmt.Printf("langs[%d]:%s \n", i, langs[i])              |                                                            |      |                                                                                                                    |
+|       |            |  }                                                       |                                                            |      |                                                                                                                    |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+|       |            | for k, v := range langs {                                |                                                            |      |                                                                                                                    |
+|       |            |  fmt.Printf("langs[%d]:%s \n", k, v)                     |                                                            |      |                                                                                                                    |
+|       |            |  }                                                       |                                                            |      |                                                                                                                    |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+|       |            | for _, v := range langs {                                |                                                            |      |                                                                                                                    |
+|       |            |  fmt.Printf(v)                                           |                                                            |      |                                                                                                                    |
+|       |            |  }                                                       |                                                            |      |                                                                                                                    |
++-------+------------+----------------------------------------------------------+------------------------------------------------------------+------+--------------------------------------------------------------------------------------------------------------------+
+
+ 2-3. Working with Dynamic Arrays Using Slices
+ Declaring nil Slice
+ Initializing Slices Using make Function
+ Creating Slices Using a Slice Literal
+ Enlarging Slices with copy and append Functions
+ Iterating Over Slices
+
+ 2-4. Persisting Key/Value Pairs Using Map
+ Declaring and Initializing Maps
+ Working with Maps
+ Iteration Order of Maps
+
+ 2-5. Writing Clean-Up Code in Functions
+
+ 2-6. Stopping the Execution Flow of Control Using Panic
+
+ 2-7. Recovering a Panicking Function Using Recover
+
+ 2-8. Performing Error Handling
+
+
+
+
++----------------------------------------+----------+--------+---------+---------+
+| asdas                                  | asdas    | asdasd | fsdfds  | sadasda |
++----------------------------------------+----------+--------+---------+---------+
+| asdasda                                | asdasdas | asdasd | asdasda | asdasd  |
++----------------------------------------+----------+--------+---------+---------+
+| asdasdasdasdasdasdasdasdasdasdasdasdas |          |        |         |         |
++----------------------------------------+----------+--------+---------+---------+
+|                                        |          |        |         |         |
++----------------------------------------+----------+--------+---------+---------+

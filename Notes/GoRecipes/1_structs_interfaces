@@ -1,0 +1,183 @@
+Structs and Interfaces
+
+hold
+instance
+declaring
+initialising
+assignment
+accessibility
+statement
+limited
+expanded
+primitive
+composite
+nutshell
+implement
+embedding
+composition
+
+
+
+Data types:
+	Types:
+		Data types:
+			built-in types 	   = Int, String
+			user defined types = struct      - struct type Customer, struct type Person etc
+								 interface
+
+		var is used to define a variable
+			var a string 		// a is a variable
+		type is used to define a datatype
+			type a struct{} 	// a is a type of struct (struct type)
+
+
+
+Define Struct
+	A struct type - Customer - is declared that has four fields of string type.
+
+	type Customer struct { // struct type Customer
+		field1 string // initialization of field of type string
+		field2 string // initialization of field of type string
+		field3 string // initialization of field of type string
+		field4 string // initialization of field of type string
+		field5, field6 string // If a group of struct fields have a common type, you can organize the fields of the same type in a single-line statement
+
+	}
+
+
+Exporting
+	In Go, identifiers(struct and fields) are exported to other packages, if the name starts with an uppercase letter; otherwise accessibility will be limited within the packages.
+
+
+
+Instance of struct
+	You can create instances of struct types by or
+		1. declaring a struct variable
+			var c Customer
+			c.FirstName = "Alex"
+			c.LastName = "John"
+			c.Email = "alex@email.com"
+			c.Phone = "732-757-2923"
+
+		2. using a struct literal.
+			An instance of Customer type is created using the struct literal and values are assigned to the struct fields.
+
+			c := Customer{
+		       FirstName: "Alex",
+		       LastName:  "John",
+		       Email:     "alex@email.com",
+		       Phone:     "732-757-2923",
+			}
+			c := Customer{
+		       "Alex",
+		       "John",
+		       "alex@email.com",
+		       "732-757-2923",
+			}
+
+
+
+
+Struct with user defined struct
+	The Customer struct was created using fields of built-in types.
+	You can use other struct types as the type for the fields of structs.
+	Let’s expand the Customer struct by adding a new field to hold address information with a struct as the type for the new field.
+	Listing 3-7 shows the Customer struct expanded by adding a new field with its type as a slice of Address type.
+
+		type Customer struct {
+		    FirstName, LastName, Email, Phone string
+		    Addresses                         []Address
+		}
+
+		c := Customer{
+		    FirstName: "Alex",
+		    LastName:  "John",
+		    Email:     "alex@email.com",
+		    Phone:     "732-757-2923",
+		    Addresses: []Address{
+			Address{
+			    Street:
+			                               "1 Mission Street",
+			                               "San Francisco",
+			                               "CA",
+			                               "94105",
+			            Street: "49 Stevenson Street",
+			            City:   "San Francisco",
+			            State:  "CA",
+			            Zip:    "94105",
+			}, },
+		}
+
+
+
+Method:
+	In Go, a method is a function that is specified with a receiver.
+		func (c Customer) ToString() string { // Customer is the receiver // c is the identifier
+			return fmt.Sprintf("Customer: %s %s, Email:%s", c.FirstName, c.LastName, c.Email)
+		}
+
+
+ToString method
+	A method ToString is added to the Customer struct.
+	The receiver is specified using an extra parameter section preceding the method name.
+	Inside the methods, you can access the fields of receiver type using the identifier of receiver. The ToString method returns the customer name and email as a string by accessing the struct fields.
+
+
+Summary
+	1. Define a struct
+	2. Define a method, attach it to the above struct
+	3. Define an instance
+	4. Call the method defined, with the Instance Identifier
+
+
+
+
+
+
+Pointers:
+	You have provided a new email to the ChangeEmail method to change the email address, but it is not reflected when you call the ToString method.
+	You are still getting the old email from the Email field.
+	To modify the state of the struct values inside the methods, you must declare methods with a pointer receiver so that a change to the field values will be reflected outside the methods.
+
+	Listing 3-10 modifies the ChangeEmail method by specifying with a pointer receiver so that the change to the Email field will be reflected outside the ChangeEmail method.
+
+
+
+Embedding:
+
+	In Listing 3-12, the Order struct is declared with embedding another type, the Customer struct. The Order struct is used to place an order for a customer so that the Customer struct is embedded into the Order struct. To embed a type, just specify the name of the type that you would like to embed into another type.
+		type Order struct {
+			Customer
+		}
+
+	The fields and behaviors of the Customer struct are available in the Order struct because of the type embedding.
+	The Customer struct uses the slice of Address struct to the Addresses field.
+	The Order struct uses the slice of OrderItem struct to the OrderItems field.
+	The Product struct is embedded into the OrderItem struct.
+
+	Here you create a bigger type Order struct by combining several other struct types.
+		Let’s add operations to the struct types that are declared for representing order information.
+		Listing 3-13 shows the completed version of the data model for Order with various behaviors.
+
+
+
+Declaring Interface Types
+	type TeamMember interface {
+	    PrintName()
+	    PrintDetails()
+	}
+
+	type Employee struct {
+	    FirstName, LastName string
+	    Dob                 time.Time
+	    JobTitle, Location  string
+	}
+	func (e Employee) PrintName() {
+	    fmt.Printf("\n%s %s\n", e.FirstName, e.LastName)
+	}
+	func (e Employee) PrintDetails() {
+	    fmt.Printf("Date of Birth: %s, Job: %s, Location: %s\n", e.Dob.String(), e.JobTitle,
+	e.Location)
+	}
+
+

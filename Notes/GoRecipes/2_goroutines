@@ -1,0 +1,1055 @@
+Goroutines:
+
+Words:
+	Synchronous
+	Synchronize
+	indicates
+	complete
+	execution
+	terminate
+	call to method
+	blocks
+	scheduled
+	decrement
+	counter
+	ensures
+	conduit
+	blocking behaviour
+	operation is performed
+	send operation, receive operation
+	operation executes
+	blocks execution
+	executes an operaion
+
+
+
+Topics:
+	Go Routine Demonstration
+	WaitGroup Demo
+	Creating Channels
+	Synchromous Communication
+		Buffered
+		Unbuffered
+	Range Expression Demo
+	Output of One Goroutine as the Input of Another
+	Channel Direciton
+	Asynchronous Communication
+
+
+
+GoRoutine:
+	Define:
+		To run a function as a goroutine, call that function prefixed with the go statement.
+
+		* prefixed
+
+		Code block:
+			f() // A normal function call that executes f synchronously and waits for completing it
+			go f() // A goroutine that executes f asynchronously and doesn't wait for completing it
+
+	Info:
+		A goroutine is created with the go statement.
+		An executable Go program does have at least one goroutine - the main goroutine (The goroutine that calls the main function is known as the main goroutine)
+
+    Summary:
+        go f()
+
+WaitGroup:
+	Example:
+		An example program
+			1. two goroutines
+				to print
+					an addition table
+					a multiplication table.
+
+			2. synchronizes the execution of both functions using sync.WaitGroup.
+			3. Function main is waiting for completion of the execution of goroutines using sync.WaitGroup.
+
+
+		Listing4-1. ExampleProgramDemonstrateshowtoCreateGoroutines
+
+			package main
+			import (
+			    "fmt"
+			    "math/rand"
+			    "sync"
+			    "time"
+			)
+
+			var wg sync.WaitGroup // WaitGroup is used to wait for the program to finish goroutines.
+			func main() {
+			    wg.Add(2) // Add a count of two, one for each goroutine. // The WaitGroup type uses a counter that specifies the number of goroutines, and Wait blocks the execution of the program until the WaitGroup counter is zero.
+
+			    fmt.Println("Start Goroutines")
+
+			    go addTable() // Launch functions as goroutines
+			    go multiTable() // Launch functions as goroutines
+
+
+			    fmt.Println("Waiting To Finish")
+
+			    wg.Wait() // Wait for the goroutines to finish.
+
+			    fmt.Println("\nTerminating Program")
+			}
+
+			// Function 1
+			func addTable() {
+			    defer wg.Done() // Schedule the call to WaitGroup's Done to tell goroutine is completed.
+			    for i := 1; i <= 10; i++ {
+			        sleep := rand.Int63n(1000)
+			        time.Sleep(time.Duration(sleep) * time.Millisecond)
+			        fmt.Println("Addition Table for:", i)
+			        for j := 1; j <= 10; j++ {
+			            fmt.Printf("%d+%d=%d\t", i, j, i+j)
+			        }
+			        fmt.Println("\n")
+			    }
+			}
+
+			// Function 2
+			func multiTable() {
+			    defer wg.Done() // Schedule the call to WaitGroup's Done to tell goroutine is completed.
+			    for i := 1; i <= 10; i++ {
+			        sleep := rand.Int63n(1000)
+			        time.Sleep(time.Duration(sleep) * time.Millisecond)
+			        fmt.Println("Multiplication Table for:", i)
+			        for j := 1; j <= 10; j++ {
+						//res = i + j
+			            fmt.Printf("%d*%d=%d\t", i, j, i*j)
+			        }
+			        fmt.Println("\n")
+			    }
+			}
+
+			The program creates two goroutines:
+				Because both functions are running concurrently, both are printing output into the console window.
+				The go statement is used to launch functions as goroutines.
+
+					go addTable()
+					go multiTable()
+
+			Details:
+				Sync package
+					WaitGroup type
+
+				Output:
+					Start Goroutines
+					Waiting To Finish
+					Addition Table for: 1
+					1+1=2   1+2=3   1+3=4   1+4=5
+					Multiplication Table for: 1
+					1*1=1   1*2=2   1*3=3   1*4=4
+					You should see output similar to the following:
+					1+5=6   1+6=7   1+7=8
+					1*5=5   1*6=6   1*7=7
+					1+8=9 1+9=10
+					1*8=8 1*9=9
+					1+10=11
+					1*10=10
+					Multiplication Table for: 2
+					2*1=2   2*2=4   2*3=6   2*4=8   2*5=10  2*6=12  2*7=14  2*8=16  2*9=18  2*10=20
+					Addition Table for: 2
+					2+1=3   2+2=4   2+3=5   2+4=6   2+5=7   2+6=8   2+7=9   2+8=10  2+9=11  2+10=12
+					Multiplication Table for: 3
+					3*1=3   3*2=6   3*3=9   3*4=12  3*5=15  3*6=18  3*7=21  3*
+
+
+================================================================================================================================================
+
+
+Managing CPUs in concurrency:
+
+	The Go runtime provides a scheduler that manages the goroutines during execution.
+		OS
+			Go runtime
+				Scheduler -> works with the OS, controls goroutine
+				Goroutines
+					schedule against Logical processors
+									 - bound with a single OS thread
+									 				- can execute tens of thousands of goroutines simultaneously
+
+
+	The Go runtime scheduler:
+		GOMAXPROCS setting = how many operating system threads will attempt to execute code simultaneously.
+
+		For example, if the value of GOMAXPROCS is 8, then 8 OS threads will spawn - (then the program will only execute goroutines on 8 OS threads at once)
+
+		1. As of Go 1.5, the default value for GOMAXPROCS is the number of CPUs available,
+		2. Prior to Go 1.5, the default value of GOMAXPROCS was 1.
+
+		NumCPU:
+			The NumCPU function of the runtime package. The NumCPU function returns the number of logical CPUs usable by the current process.
+					import "runtime"
+
+					cpu = runtime.NumCPU()
+
+		GOMAXPROCS:
+			The value of GOMAXPROCS can be modified
+				1. using the GOMAXPROCS environment variable or
+				2. calling the GOMAXPROCS function of the runtime package from within a program.
+
+			The following code block sets the value of GOMAXPROCS to 1 so that the program will execute goroutines on one OS thread at once:
+
+					import "runtime"
+					// Sets the value of GOMAXPROCS
+					runtime.GOMAXPROCS(1)
+
+
+
+Creating Channels:
+	A channel is created by the make function, which specifies the chan keyword and a channel’s element type.
+
+
+	Unbuffered channel:
+		counter := make(chan int) // Unbuffered channel of integer type
+			An unbuffered channel of integer type is created using the built-in function make.
+			The channel counter can act as a conduit for values of integer type.
+			You can use both built-in types and user-defined types as the type of channel element.
+
+	Buffered channel:
+		nums := make(chan int,3) // Buffered channel of integer type buffering up to 3 values
+			A buffered channel is created by specifying its capacity.
+			A buffered channel of integer type is created with capacity of 3.
+
+
+
+	Communication with Channels:
+		A channel has three operations:
+			send, receive, and close.
+
+			The communication operator <- is used for both send and receive operations:
+
+			Send:
+					counter <- 10
+					The preceding statement shows a send operation that sends a value to the channel named counter.
+					When you write a value or pointer into a channel, the operator <- is put on the right side of the channel variable.
+
+			Receive:
+					num = <- counter
+					The preceding statement shows a receive operation that receives a value from a channel named counter.
+					When you receive a value or pointer from a channel, the operator <- is put on the left side of the channel variable.
+
+			Closing channels:
+					A channel has a close operation that closes the channel so that a send operation on the channel cannot take place.
+
+					Send on closed channel:
+						A send operation on a closed channel will result in a panic.
+
+					Receive on closed channel:
+						A receive operation on a closed channel returns the values that have already been sent into the channel before it closed; after that, a receive statement returns the zero value of the channel’s element type.
+
+
+            Summary:
+                var wg sync.WaitGroup
+                wg.Add(2)
+                wg.Wait()
+                wg.Done()
+                counter := make(chan int) // Unbuffered channel of integer type
+                nums := make(chan int,3) // Buffered channel of integer type buffering up to 3 values
+                count := make(chan int)
+                count <- 1
+                func printCounts(label string, count chan int) {
+                val, ok := <-count
+                if !ok {
+                    fmt.Println("Channel was closed")
+                    return
+                }
+                close(count)
+                func randomCounter(out chan<- int) {
+                func generateFibonacci(out chan<- fibvalue, in <-chan int) {
+                for val := range count {} // count is a channel
+
+
+
+	Example Program of a channel
+
+		Listing4-2. SendandReceiveValueswithUnbufferedandBufferedChannels
+
+			package main
+			import (
+			    "fmt"
+			)
+
+			func main() {
+			    // An unbuffered channel named counter is created with an element type of integer.
+			    counter := make(chan int)
+			    // A buffered channel named nums is also created with an element type of integer and capacity of 3, which means it can buffer up to three values.
+			    nums := make(chan int, 3)
+
+			    // An anonymous function is launched as a goroutine from the main function and writes a value to it.
+			    go func() {
+			        // Send value to the unbuffered channel
+			        counter <- 1
+
+			        // The channel counter closes after writing a value to it. Note that a send operation on the unbuffered channel blocks the execution on that channel until a corresponding receive operation is executed, so the channel will wait for a receive operation from another goroutine. Here the receive operation is executing from the main goroutine.
+			        close(counter) // Closes the channel
+				}()
+
+				// Another anonymous function is launched as a goroutine to write values into the buffered channel. Unlike the unbuffered channel, a send operation on the buffered channel won’t block the execution and you can buffer values up to its capacity, which here is 3.
+
+			    go func() {
+			        // Send values to the buffered channel
+			        nums <- 10
+			        nums <- 30
+			        nums <- 50
+			    }()
+
+			    // Read the value from unbuffered channel
+			    // The program yields the value from the unbuffered channel. Before closing the channel counter, one value was sent into it so the program can perform one receive operation. Thereafter the channel would be empty.
+			    fmt.Println(<-counter)
+
+			    // A receive operation on the channel can identify whether the channel is empty. The following code block checks whether the channel is empty or not.
+
+			    // The receive operation can return two values. It returns an additional boolean value that indicates whether the communication succeeded or not. In the preceding code block, the value of ok would return true if the receive operation was delivered by a successful send operation to the channel, or false if a zero value is generated because the channel is closed and empty. In this program, the value of ok would be false because the channel is closed and empty.
+
+
+			    val, ok := <-counter // Trying to read from closed channel
+			    if ok {
+			        fmt.Println(val) // This won't execute
+			    }
+			    // Read the 3 buffered values from the buffered channel
+			    // The buffered channel buffers three values so the program can perform three receive operations to yield the value from the channel. Finally the buffered channel is closed so that no more send operations can be performed on it.
+
+			    fmt.Println(<-nums)
+			    fmt.Println(<-nums)
+			    fmt.Println(<-nums)
+			    close(nums) // Closes the channel
+			}
+
+
+
+Synchronous Communication:
+
+How It Works
+	An unbuffered channel ensures the exchange of data between a sending and a receiving goroutine.
+
+	goroutine <-----> Unbuffered channel <-----> goroutine
+
+		Block: A send operation therefore blocks the sending goroutine until a corresponding receive operation executes from another goroutine.
+
+		Block: If the receive operation executes first, the receiving goroutine is blocked until a corresponding send operation executes from another goroutine.
+
+		***The receive operation might be attempted before the send operation is performed.
+
+		Summary:
+			When a send operation performs on an unbuffered channel from one goroutine, a corresponding receive operation must be executed on the same channel from another goroutine to complete the send operation.
+			In short, completion of a send or receive operation from one goroutine requires execution of a corresponding send or receive operation from another goroutine.
+
+
+	Deadlock
+
+	Example:
+	Deadlock example:
+	Example Program That Creates a Deadlock so That the Program Will Fail
+
+		package main
+			import (
+			    "fmt"
+			)
+			func main() {
+			    counter := make(chan int) // Declare an unbuffered channel
+			    // This will create a deadlock
+			    counter <- 10          // Send operation to a channel from main goroutine
+			    fmt.Println(<-counter) // Receive operation from the channel
+			}
+
+	Output:
+		fatal error: all goroutines are asleep - deadlock!
+		goroutine 1 [chan send]:
+
+
+
+	Listing 4-4. Example Program That Fixes the Deadlock Caused in Listing 4-3 package main
+		import (
+		    "fmt"
+		)
+		func main() {
+		    counter := make(chan int) // Declare an unbuffered channel
+		    // Perform send operation by launching new goroutine
+		    go func() {
+		        counter <- 10
+		    }()
+		    fmt.Println(<-counter) // Receive operation from the channel
+		}
+
+	This program will run successfully without any issue because it executes the send operation by launching a new goroutine and the receive operation is executed in the main goroutine.
+
+
+	Example Program
+	Let’s write an example program to understand the communication mechanism of unbuffered channels, as shown in Listing 4-5.
+
+	Listing4-5. ExampleProgramDemonstratingUnbufferedChannels package main
+		import (
+		    "fmt"
+			"sync"
+		)
+		// wg is used to wait for the program to finish.
+		var wg sync.WaitGroup
+		func main() {
+		    count := make(chan int)
+
+		    wg.Add(2) // Add a count of two, one for each goroutine.
+			fmt.Println("Start Goroutines")
+
+			go printCounts("Goroutine-1", count) // Launch a goroutine with label "Goroutine-1"
+
+			go printCounts("Goroutine-2", count) // Launch a goroutine with label "Goroutine-2"
+
+			fmt.Println("Communication of channel begins")
+			count <- 1
+
+			fmt.Println("Waiting To Finish")
+			wg.Wait() // Wait for the goroutines to finish.
+
+			fmt.Println("\nTerminating the Program")
+		}
+		func printCounts(label string, count chan int) {
+		    // Schedule the call to WaitGroup's Done to tell goroutine is completed.
+		    defer wg.Done()
+		    for {
+		        // Receives message from Channel
+		        val, ok := <-count
+		        if !ok {
+		            fmt.Println("Channel was closed")
+					return
+				}
+		        fmt.Printf("Count: %d received from %s \n", val, label)
+		        if val == 10 {
+		            fmt.Printf("Channel Closed from %s \n", label)
+		            // Close the channel
+		            close(count)
+		            return
+		        }
+		        val++
+		        // Send count back to the other goroutine.
+		        count <- val
+		} }
+
+	An unbuffered channel of integer type named count is created and launches two goroutines.
+
+	Both goroutines are executing the printCounts function by providing the channel count and a string label.
+	After the two goroutines are launched, a send operation is performed on the channel count.
+	This waits to get a corresponding receive operation on the same channel.
+		// Launch a goroutine with label "Goroutine-1"
+	    go printCounts("Goroutine-1", count)
+	    // Launch a goroutine with label "Goroutine-2"
+	    go printCounts("Goroutine-2", count)
+	    fmt.Println("Communication of channel begins")
+	    count <- 1
+
+	The printCounts function prints the value received from the channel count and performs a send operation on the same channel by providing a new value to the count to share the data with other goroutines. After two goroutines are launched, an initial value of 1 is sent to the channel, so one goroutine can receive the initial value and the send operation can be completed. After receiving a value from the channel, the receiving goroutine sends an incremented value to the channel, so it blocks the goroutine until the other goroutine receives the value from the channel. The operation of both send and receive continue until the value of count reaches 10. When the value of the channel count gets to 10, the channel is closed so that no more send operations can be performed.
+
+		func printCounts(label string, count chan int) {
+		    // Schedule the call to WaitGroup's Done to tell goroutine is completed.
+		    defer wg.Done()
+		    for {
+		        // Receives message from Channel
+		        // When a receive operation is performed on the channel, we check if the channel is closed or not, and exit from the goroutine if the channel is closed.
+		        val, ok := <-count
+		        if !ok {
+		            fmt.Println("Channel was closed")
+					return
+				}
+		        fmt.Printf("Count: %d received from %s \n", val, label)
+		        if val == 10 {
+		            fmt.Printf("Channel Closed from %s \n", label)
+		            // Close the channel
+		            close(count)
+		            return
+		        }
+		        val++
+		        // Send count back to the other goroutine.
+		        count <- val
+		} }
+
+
+
+	Output:
+		You should see output similar to the following:
+			Start Goroutines
+			Communication of channel begins
+			Waiting To Finish
+			Count: 1 received from Goroutine-1
+			Count: 2 received from Goroutine-2
+			Count: 3 received from Goroutine-1
+			Count: 4 received from Goroutine-2
+			Count: 5 received from Goroutine-1
+			Count: 6 received from Goroutine-2
+			Count: 7 received from Goroutine-1
+			Count: 8 received from Goroutine-2
+			Count: 9 received from Goroutine-1
+			Count: 10 received from Goroutine-2
+			Channel Closed from Goroutine-2
+			Channel was closed
+			Terminating the Program
+
+
+Receive Values Using Range Expression
+	The value from the channel using the communication operator <- and checking whether the channel was closed or not.
+	You have used the range expression to iterate over the elements of various data structures such as arrays, slices, and maps.
+	The range expression can also be used to yield the values from channels, which would be more convenient for most use cases.
+
+	The range expression on the channel yields the values until the channel is closed. Listing 4-6 rewrites the code of Listing 4-5 with the range expression.
+		Listing4-6. ExampleProgramDemonstratesUnbufferedChannelandrangeExpressiononChannel package main
+
+			import (
+			    "fmt"
+				"sync"
+			)
+			// wg is used to wait for the program to finish.
+			var wg sync.WaitGroup
+			func main() {
+			    count := make(chan int)
+			    // Add a count of two, one for each goroutine.
+			    wg.Add(2)
+			    fmt.Println("Start Goroutines")
+			    // Launch a goroutine with label "Goroutine-1"
+			    go printCounts("Goroutine-1", count)
+			    // Launch a goroutine with label "Goroutine-2"
+			    go printCounts("Goroutine-2", count)
+			    fmt.Println("Communication of channel begins")
+			    count <- 1
+			    // Wait for the goroutines to finish.
+			    fmt.Println("Waiting To Finish")
+			    wg.Wait()
+			    fmt.Println("\nTerminating the Program")
+			}
+			func printCounts(label string, count chan int) {
+			    // Schedule the call to WaitGroup's Done to tell goroutine is completed.
+				defer wg.Done()
+			    for val := range count {
+			        fmt.Printf("Count: %d received from %s \n", val, label)
+			        if val == 10 {
+			            fmt.Printf("Channel Closed from %s \n", label)
+			            // Close the channel
+			            close(count)
+			            return
+			        }
+			        val++
+			        // Send count back to the other goroutine.
+			        count <- val
+				}
+			}
+
+		The range expression yields the value from channel count until the channel is closed.
+			for val := range count {
+			        fmt.Printf("Count: %d received from %s \n", val, label)
+			}
+
+		Output:
+			You should see output similar to the following:
+			Start Goroutines
+			Communication of channel begins
+			Waiting To Finish
+			Count: 1 received from Goroutine-1
+			Count: 2 received from Goroutine-2
+			Count: 3 received from Goroutine-1
+			Count: 4 received from Goroutine-2
+			Count: 5 received from Goroutine-1
+			Count: 6 received from Goroutine-2
+			Count: 7 received from Goroutine-1
+			Count: 8 received from Goroutine-2
+			Count: 9 received from Goroutine-1
+			Count: 10 received from Goroutine-2
+			Channel Closed from Goroutine-2
+			Terminating the Program
+
+
+
+
+
+4-5. Using the Output of One Goroutine as the Input of Another
+
+How It Works
+	Let’s write an example program to explore a pipeline.
+
+	Listing 4-7 shows an example program that demonstrates a pipeline with goroutines and channels.
+
+	The example program has a three-stage pipeline with three goroutines that are connected by two channels.
+	In this pipeline, the goroutine of the first stage is used to randomly generate values with an upper limit of 50.
+	The pipeline has an outbound channel to give inbound values to the goroutine of the second stage.
+	The goroutine of the second stage has an inbound channel and an outbound channel.
+	The inbound channel receives values from the first goroutine when it randomly generates each value and finds out the Fibonacci value.
+	It then provides the resulting Fibonacci values to the goroutine of third stage, which just prints the outbound values from the goroutine of second stage.
+
+Here is the example program.
+
+	Listing 4-7. A Three-Stage Pipeline with Three Goroutines Connected by Two Channels package main
+		import (
+		    "fmt"
+		    "math"
+		    "math/rand"
+		    "sync"
+		)
+		type fibvalue struct {
+		    input, value int
+		}
+
+		var wg sync.WaitGroup
+		// Generates random values
+		// The goroutine of the first stage randomly generates values with an upper limit of 50.
+		func randomCounter(out chan int) {
+		    defer wg.Done()
+		    var random int
+		    for x := 0; x < 10; x++ {
+		        random = rand.Intn(50)
+		        out <- random
+		    }
+			close(out)
+		}
+		// Produces Fibonacci values of inputs provided by randomCounter
+		func generateFibonacci(out chan fibvalue, in chan int) {
+		    defer wg.Done()
+		    var input float64
+		    for v := range in {
+		        input = float64(v)
+		        // Fibonacci using Binet's formula
+		        Phi := (1 + math.Sqrt(5)) / 2
+		        phi := (1 - math.Sqrt(5)) / 2
+		        result := (math.Pow(Phi, input) - math.Pow(phi, input)) / math.Sqrt(5)
+		        out <- fibvalue{
+		            input: v,
+		            value: int(result),
+				}
+			}
+			close(out)
+		}
+		// Print Fibonacci values generated by generateFibonacci
+		func printFibonacci(in chan fibvalue) {
+		    defer wg.Done()
+		    for v := range in {
+		        fmt.Printf("Fibonacci value of %d is %d\n", v.input, v.value)
+		    }
+		}
+
+		func main() {
+		    // Add 3 into WaitGroup Counter
+		    wg.Add(3)
+		    // Declare Channels
+		    randoms := make(chan int)
+		    fibs := make(chan fibvalue)
+
+		    // Launching 3 goroutines
+		    go randomCounter(randoms)
+		    go generateFibonacci(fibs, randoms)
+		    go printFibonacci(fibs)
+		    // First stage of pipeline
+			// Second stage of pipeline
+			// Third stage of pipeline
+			// Wait for completing all goroutines
+		    wg.Wait()
+		}
+
+	The program prints Fibonacci values of 10 randomly generated values.
+	Two unbuffered channels are used as inbound and outbound channels for the three-stage pipeline.
+	The element type of channel randoms is integer and the element type of channel fibs is a struct type named fibvalue that consists of two fields for holding a random number and its Fibonacci value.
+	Three goroutines are used for completing this pipeline.
+		go randomCounter(randoms)
+		go generateFibonacci(fibs, randoms)
+		go printFibonacci(fibs)
+		// First stage of pipeline
+		// Second stage of pipeline
+		// Third stage of pipeline
+
+
+		In this example program, the output of the first stage is used as the input for the second stage, then the output of second stage is used as the input for third stage. You should see output similar to the following:
+			Fibonacci value of 31 is 1346268
+			Fibonacci value of 37 is 24157816
+			Fibonacci value of 47 is 2971215072
+			Fibonacci value of 9 is 34
+			Fibonacci value of 31 is 1346268
+			Fibonacci value of 18 is 2584
+			Fibonacci value of 25 is 75025
+			Fibonacci value of 40 is 102334154
+			Fibonacci value of 6 is 8
+			Fibonacci value of 0 is 0
+
+
+
+
+
+
+
+Channel Direction
+	You used three goroutines connected by two channels. In these goroutines, one goroutine performs the send operation to a channel and 
+	from another goroutine values are received from the same channel.
+
+	Here a channel within in a goroutine is used for either a send operation or a receive operation so that you can specify the channel direction (send or receive) when you specify channels as parameters.
+		func generateFibonacci(out chan<- fibvalue, in <-chan int) {
+		}
+
+	Here the declaration out chan<- fibvalue specifies that the channel out is used for the send operation
+	The in <-chan int specifies that the channel in is used for the receive operation.
+
+	Example with Channel Direction
+		Listing 4-8 rewrites the example code of Listing 4-7 by clearly specifying the channel direction. Listing 4-8. A Three-Stage Pipeline with Three Goroutines Connected by Two Channels
+			package main
+			import (
+			    "fmt"
+			    "math"
+			    "math/rand"
+			    "sync"
+			)
+			type fibvalue struct {
+			    input, value int
+			}
+			var wg sync.WaitGroup
+			func randomCounter(out chan<- int) {
+			    defer wg.Done()
+			    var random int
+			    for x := 0; x < 10; x++ {
+			        random = rand.Intn(50)
+			        out <- random
+			    }
+			close(out) }
+			func generateFibonacci(out chan<- fibvalue, in <-chan int) {
+			    defer wg.Done()
+			    var input float64
+			    for v := range in {
+			input = float64(v)
+			// Fibonacci using Binet's formula
+			Phi := (1 + math.Sqrt(5)) / 2
+			phi := (1 - math.Sqrt(5)) / 2
+			result := (math.Pow(Phi, input) - math.Pow(phi, input)) / math.Sqrt(5)
+			out <- fibvalue{
+			input: v,
+			    value: int(result),
+			    }
+			}
+			close(out) }
+			func printFibonacci(in <-chan fibvalue) {
+			    defer wg.Done()
+			    for v := range in {
+			        fmt.Printf("Fibonacci value of %d is %d\n", v.input, v.value)
+			    }
+			}
+			func main() {
+			    // Add 3 into WaitGroup Counter
+			    wg.Add(3)
+			    // Declare Channels
+			    randoms := make(chan int)
+			    fibs := make(chan fibvalue)
+			    // Launching 3 goroutines
+			    go randomCounter(randoms)
+			    go generateFibonacci(fibs, randoms)
+			    go printFibonacci(fibs)
+			    // Wait for completing all goroutines
+			    wg.Wait()
+			}
+
+		In the randomCounter function, the channel out is used only for the send operation.
+			The generateFibonacci function uses two channels:
+				The channel in is used for the receive operation and the channel out is used for send operations.
+				The channel in the printFibonacci function is used only for the receive operation.
+
+
+
+4-6. Using Channels for Asynchronous Communication
+Problem
+	You would like to exchange data between goroutines through channels in an asynchronous manner, and the channel should be capable of buffering values.
+
+	Solution
+		The buffered channel is capable of buffering values up to its capacity and it provides asynchronous communication for data exchange.
+
+		How It Works
+			Unlike unbuffered channels, buffered channels can hold values up to their capacity.
+			A buffered channel is like a queue on which a send operation doesn’t block any goroutine because of its capability for holding elements.
+			A send operation on the buffered channel is blocked only when the channel is full, which means that the channel has reached its buffering capacity.
+			Capaity = determined when it is created using the make function.
+			The following statement creates a buffered channel that is capable of holding elements of three integer values.
+				nums := make(chan int, 3)
+			Here is the code block that makes three send operations into the channel nums:
+				nums <- 10
+				nums <- 30
+				nums <- 50
+			A send operation on a buffered channel doesn’t block the sending goroutine.
+			Here the channel nums is capable of holding elements of three integer values.
+			A send operation inserts an element on the back of the channel and a receive operation removes an element from the front of the channel.
+			This pattern ensures that the send and receive operations on a buffered channel are working on a first-in, first-out (FIFO) basis.
+			The first inserted element through a send operation will be yielded for the first receive operation on the channel.
+
+			The following code block receives three values from the channel nums:
+				fmt.Println(<-nums) // Print 10 (first inserted item)
+				fmt.Println(<-nums) // Print 30 (second inserted item)
+				fmt.Println(<-nums) // Print 50 (third inserted item)
+
+			A buffered channel can hold elements up to its capacity.
+			If one goroutine makes a send operation on a buffered channel that exceeds its capacity, which means that the channel is full and trying to perform another send operation on the same channel, 
+			it blocks the sending goroutine until a space is available to insert a new element on the channel by a receive operation of another goroutine.
+			In the same way, a receive operation on an empty buffered channel blocks the receiving goroutine until an element is inserted into the channel by a send operation of another goroutine.
+
+			Let’s explore buffered channels by writing an example program, shown in Listing 4-9.
+			In this example, a buffered channel is used to hold information on tasks to be executed from a number of goroutines.
+			The buffered channel is capable of holding elements of 10 pointers that contain information on jobs to be completed.
+			These jobs are being executed using a predefined number of goroutines; here it is three.
+			These three goroutines are simultaneously receiving values from a buffered channel and then executing the jobs.
+
+			Listing4-9. ExampleDemonstratingBufferedChannels
+				package main
+				import (
+				    "fmt"
+				    "math/rand"
+				    "sync"
+				    "time"
+				)
+				type Task struct {
+				    Id        int
+				    JobId     int
+				    Status    string
+				    CreatedOn time.Time
+				}
+				func (t *Task) Run() {
+				    sleep := rand.Int63n(1000) // Delaying the execution for the sake of example
+				    time.Sleep(time.Duration(sleep) * time.Millisecond)
+				    t.Status = "Completed"
+				}
+				// wg is used to wait for the program to finish.
+				var wg sync.WaitGroup
+				const noOfWorkers = 3
+				// main is the entry point for all Go programs.
+				func main() {
+				    // Create a buffered channel to manage the task queue.
+				    taskQueue := make(chan *Task, 10)
+				    // Launch goroutines to handle the work.
+				    // The worker process is distributing with the value of noOfWorkers.
+				    wg.Add(noOfWorkers)
+				    for gr := 1; gr <= noOfWorkers; gr++ {
+				        go worker(taskQueue, gr)
+				    }
+				    // Add Tasks into Buffered channel.
+				    for i := 1; i <= 10; i++ {
+				        taskQueue <- &Task{
+				            Id:        i,
+				            JobId:     100 + i,
+				            CreatedOn: time.Now(),
+				        }
+					}
+				    // Close the channel
+				    close(taskQueue)
+				    // Wait for all the work to get done.
+					wg.Wait()
+				}
+
+				// worker is launched as a goroutine to process Tasks from
+				// the buffered channel.
+
+				func worker(taskQueue <-chan *Task, workerId int) {
+				    // Schedule the call to Done method of WaitGroup.
+				    defer wg.Done()
+				    for v := range taskQueue {
+				        fmt.Printf("Worker%d: received request for Task:%d - Job:%d\n", workerId, v.Id,v.JobId)
+				        v.Run()
+				        // Display we finished the work.
+				        fmt.Printf("Worker%d: Status:%s for Task:%d - Job:%d\n", workerId, v.Status, v.Id, v.JobId)
+				        }
+				}
+
+				A struct type named Task is defined for representing a task to be executed. A method named Run is added to the Task type to replicate running a task, which will be executed from goroutines.
+					type Task struct {
+					    Id        int
+					    JobId     int
+					    Status    string
+					    CreatedOn time.Time
+					}
+					func (t *Task) Run() {
+					    sleep := rand.Int63n(1000)
+					    // Delaying the execution for the sake of example
+					    time.Sleep(time.Duration(sleep) * time.Millisecond)
+					    t.Status = "Completed"
+					}
+
+
+				A buffered channel is created by specifying a pointer to Task type as the element type and capacity of 10.
+					taskQueue := make(chan *Task, 10)
+
+				The buffered channel taskQueue holds the tasks to be executed from a predefined number of goroutines.
+				From the main function, the program launches a predefined number of goroutines to distribute the work for which the information for completing the tasks is available from channel taskQueue.
+				After launching three goroutines, the buffered channel is filled with 10 elements of pointers to Task values.
+
+				// wg is used to wait for the program to finish.
+				var wg sync.WaitGroup
+				const noOfWorkers = 3  // number of goroutines to be used for executing the worker
+				// main is the entry point for all Go programs.
+				func main() {
+				    // Create a buffered channel to manage the task queue.
+				    taskQueue := make(chan *Task, 10)
+				    // Launch goroutines to handle the work.
+				    // The worker process is distributing with the value of noOfWorkers.
+			    wg.Add(noOfWorkers)
+			    for gr := 1; gr <= noOfWorkers; gr++ {
+			        go worker(taskQueue, gr)
+			    }
+			    // Add Tasks into Buffered channel.
+			    for i := 1; i <= 10; i++ {
+			        taskQueue <- &Task{
+			            Id:        i,
+			            JobId:     100 + i,
+			            CreatedOn: time.Now(),
+			        }
+				}
+				    // Close the channel
+				    close(taskQueue)
+				    // Wait for all the work to get done.
+					wg.Wait()
+				}
+
+				The function worker is used for launching goroutines to execute tasks by receiving values from the buffered channel. The channel contains the information for 10 tasks, and these tasks are distributed and executed from three goroutines by launching the worker function as goroutines. The worker function receives elements (pointer to Task) from a channel and then executes the Run method of Task type to completing the task.
+
+				func worker(taskQueue <-chan *Task, workerId int) {
+				    // Schedule the call to Done method of WaitGroup.
+				    defer wg.Done()
+				    for v := range taskQueue {
+				        fmt.Printf("Worker%d: received request for Task:%d - Job:%d\n", workerId, v.Id,
+				v.JobId)
+				        v.Run()
+				        // Display we finished the work.
+				        fmt.Printf("Worker%d: Status:%s for Task:%d - Job:%d\n", workerId, v.Status, v.Id,
+				v.JobId) }
+				}
+
+			In short, in this example, a buffered channel is used to send 10 tasks to be executed for completing some work. Because buffered channels work like a queue, the channel can hold values up to its capacity, and a send operation on the channel doesn’t block the goroutine. Here the work of 10 tasks is executed by three goroutines after launching a function so that the work for completing 10 tasks can be concurrently performed from a number of goroutines.
+
+			Output:
+					You should see output similar to the following:
+					Worker1: received request for Task:2 - Job:102
+					Worker3: received request for Task:1 - Job:101
+					Worker2: received request for Task:3 - Job:103
+					Worker1: Status:Completed for Task:2 - Job:102
+					Worker1: received request for Task:4 - Job:104
+					Worker1: Status:Completed for Task:4 - Job:104
+					Worker1: received request for Task:5 - Job:105
+					Worker3: Status:Completed for Task:1 - Job:101
+					Worker3: received request for Task:6 - Job:106
+					Worker2: Status:Completed for Task:3 - Job:103
+					Worker2: received request for Task:7 - Job:107
+			The output shows that the work for executing 10 tasks is being distributed from three workers launched as goroutines.
+
+
+
+4-7. Communicating on Multiple Channels
+Problem
+	You would like to perform communication operations on multiple channels.
+Solution
+	Go provides a select statement that lets a goroutine perform communication operations on multiple channels.
+
+How It Works
+	When you build real-world concurrent programs with Go, you might need to deal with multiple channels in a single goroutine, which could require you to perform communication operations on multiple channels. The select statement is a powerful communication mechanism when it is used in conjunction with multiple channels. A select block is written with multiple case statements that lets a goroutine wait until one of the cases can run; it then executes the code block of that case. If multiple case blocks are ready for execution, it randomly picks one of them and executes the code block of that case.
+	Listing 4-10 shows an example program that performs a select block for reading values from multiple channels in a goroutine.
+
+Listing4-10. AselectBlockforReadingValuesfromMultipleChannels
+	package main
+	import (
+	    "fmt"
+		"math"
+		"math/rand"
+		"sync"
+	)
+	type (
+	    fibvalue struct {
+	        input, value int
+	    }
+	    squarevalue struct {
+	        input, value int
+	} )
+	func generateSquare(sqrs chan<- squarevalue) {
+	    defer wg.Done()
+	    for i := 1; i <= 10; i++ {
+	        num := rand.Intn(50)
+	        sqrs <- squarevalue{
+				input: num,
+	            value: num * num,
+	        }
+	} }
+	func generateFibonacci(fibs chan<- fibvalue) {
+	    defer wg.Done()
+	    for i := 1; i <= 10; i++ {
+	        num := float64(rand.Intn(50))
+	        // Fibonacci using Binet's formula
+	        Phi := (1 + math.Sqrt(5)) / 2
+	        phi := (1 - math.Sqrt(5)) / 2
+	        result := (math.Pow(Phi, num) - math.Pow(phi, num)) / math.Sqrt(5)
+	        fibs <- fibvalue{
+	            input: int(num),
+	            value: int(result),
+	        }
+	} }
+	func printValues(fibs <-chan fibvalue, sqrs <-chan squarevalue) {
+	    defer wg.Done()
+	    for i := 1; i <= 20; i++ {
+	        select {
+	        case fib := <-fibs:
+	            fmt.Printf("Fibonacci value of %d is %d\n", fib.input, fib.value)
+	        case sqr := <-sqrs:
+	            fmt.Printf("Square value of %d is %d\n", sqr.input, sqr.value)
+	} }
+	}
+	// wg is used to wait for the program to finish.
+	var wg sync.WaitGroup
+
+	func main() {
+	    wg.Add(3)
+
+	    // Create Channels
+	    fibs := make(chan fibvalue)
+	    sqrs := make(chan squarevalue)
+
+	    // Launching 3 goroutines
+	    go generateFibonacci(fibs)
+	    go generateSquare(sqrs)
+	    go printValues(fibs, sqrs)
+
+	    // Wait for completing all goroutines
+	    wg.Wait()
+	}
+	The program launches three goroutines: One is for generating Fibonacci values of 10 randomly generated numbers; another one is for generating square values of 10 randomly generated numbers; and the last one is for printing the resulting values generated by the first and second goroutines. From the main function, two channels are created for the communication of Fibonacci values and square values generated by corresponding goroutines. The function generateFibonacci is launched as a goroutine that performs a send operation into channel fibs to provide values of Fibonacci. The function generateSquare is launched as a goroutine that performs a send operation into channel sqrs to provide values of a square. The function printValues is launched as a goroutine that polls on both fibs and sqrs channels to print the resulting values whenever the values can receive from both channels.
+	Inside the printValues function, a select expression is used with two case blocks. The select block is 20 times using a for loop expression. We use the 20 times for printing 10 Fibonacci values and 10 square values. In a real-world scenario, you might be running this in an endless loop in which you might be continually communicating with channels.
+
+	func printValues(fibs <-chan fibvalue, sqrs <-chan squarevalue) {
+	    defer wg.Done()
+	    for i := 1; i <= 20; i++ {
+	        select {
+	        case fib := <-fibs:
+	            fmt.Printf("Fibonacci value of %d is %d\n", fib.input, fib.value)
+	        case sqr := <-sqrs:
+	            fmt.Printf("Square value of %d is %d\n", sqr.input, sqr.value)
+	} }
+	}
+
+	Here the select expression is written with two case blocks: One is for the receive operation on the fibs channel and the other is for the receive operation on the sqrs channel. The select statement blocks the goroutine until any of these blocks can run, and then it executes that case block. If all case blocks are not ready for execution, it blocks until a value is sent into either of the two channels used in this program. If multiple case blocks are ready for execution, it randomly picks a case block, then executes it.
+	You can also add a default block inside a select expression, and this does execute if all other case blocks are not ready for an execution. It also possible to implement a timeout expression in the select block as shown here:
+
+	select {
+	  case fib := <-fibs:
+	     fmt.Printf("Fibonacci value of %d is %d\n", fib.input, fib.value)
+	case sqr := <-sqrs:
+	  fmt.Printf("Square value of %d is %d\n", sqr.input, sqr.value)
+	case <-time.After(time.Second * 3):
+	  fmt.Println("timed out")
+	}
+
+	In the preceding code block, a timeout expression is added into the select block. If the select statement is unable to run any of the case blocks within the specified timeout period, which is 3 seconds in this case,thenthetimeoutblockwouldbeexecuted.The time.Afterfunctionreturnsachannel(<- chan time.Time) that waits for the given duration to elapse and then sends the current time on the returned channel.
+
+	You should see output similar to the following:
+		Fibonacci value of 31 is 1346268
+		Square value of 47 is 2209
+		Fibonacci value of 37 is 24157816
+		Square value of 9 is 81
+		Square value of 31 is 961
+		Square value of 18 is 324
+		Fibonacci value of 25 is 75025
+		Fibonacci value of 40 is 102334154
+		Square value of 0 is 0
+		Fibonacci value of 6 is 8
+		Fibonacci value of 44 is 701408732
+		Square value of 12 is 144
+		Fibonacci value of 11 is 89
+		Square value of 39 is 1521
+		Square value of 28 is 784
+		Fibonacci value of 11 is 89
+		Square value of 24 is 576
+		Square value of 45 is 2025
+		Fibonacci value of 37 is 24157816
+		Fibonacci value of 6 is 8
+
+

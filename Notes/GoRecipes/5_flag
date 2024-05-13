@@ -1,0 +1,117 @@
+Flag
+essential
+
+Flags:
+
+	package main
+	import (
+	        "flag"
+			"fmt"
+		)
+	func main() {
+	        fileName := flag.String("filename", "logfile", "File name for the log file")
+	        logLevel := flag.Int("loglevel", 0, "An integer value for Level (0-4)")
+	        isEnable := flag.Bool("enable", false, "A boolean value for enabling log options")
+	        var num int
+
+	        flag.IntVar(&num, "num", 25, "An integer value") // Bind the flag to a variable.
+
+	        flag.Parse() // Parse parses flag definitions from the argument list.
+
+	        fmt.Println("filename:", *fileName) // Get the values from pointers
+	        fmt.Println("loglevel:", *logLevel)
+	        fmt.Println("enable:", *isEnable)
+
+	        fmt.Println("num:", num) // Get the value from a variable
+
+	        args := flag.Args() // Args returns the non-flag command-line arguments.
+	        if len(args) > 0 {
+                fmt.Println("The non-flag command-line arguments are:")
+
+                for _, v := range args { // Print the arguments
+                        fmt.Println(v)
+			}
+	}
+}
+
+Bind to a new variable:
+	The function flag.String is used to define the flag for getting the string value via the command line.
+
+	fileName := flag.String("filename", "logfile", "File name for the log file")
+
+	The preceding statement declares a string flag,
+		flag name = filename and
+		provides a default value as "logfile ".
+	The user input for the filename flag (-filename) is stored in the pointer fileName, with type *string.
+	The third argument provides a description for the usage of the flag.
+	The functions flag. Bool() and flag.Int() are used for declaring flags for boolean and integer values.
+
+	logLevel := flag.Int("loglevel", 0, "An integer value for Level (0-4)")
+	isEnable := flag.Bool("enable", false, "A boolean value for enabling log options")
+
+Bind to an existing variable
+	If you want to bind the flag to an existing variable, you can use the functions flag.IntVar, flag. BoolVar, and flag.StringVar.
+	The following code block binds the flag num (-num) to the integer variable num.
+		var num int
+		// Bind the flag to a variable.
+		flag.IntVar(&num, "num", 25, "An integer value")
+
+	The function flag.Parse() parses flag definitions from the command line.
+	Because the functions flag. String(), flag.Bool(), and flag.Int() are return pointers, we dereference the pointers to get the values.
+		fmt.Println("name:", *fileName)
+		fmt.Println("num:", *logLevel)
+		fmt.Println("enable:", *isEnable)
+
+	The function flag.IntVar returns an integer value, not a pointer, so that the value can be read without a dereference of the pointer.
+		fmt.Println("num:", num)
+
+	The package flag provides a function called Args that can be used to read nonflag command-line arguments.
+	This function call returns a slice of string if you provide nonflag command-line arguments. Command-line arguments are positioned after the command-line flags.
+
+	Here the command-line arguments are printing into the console if the user provides it.
+		args := flag.Args()
+		        if len(args) > 0 {
+		                fmt.Println("The non-flag command-line arguments are:")
+		                // Print the arguments
+		                for _, v := range args {
+		                        fmt.Println(v)
+			}
+		}
+
+	Let’s build the program and run it with different command-line options:
+		$ go build
+
+	First, let’s run the program by providing all flags and arguments.
+		$ ./ cmdflags -filename=applog -loglevel=2 -enable -num=50 10 20 30 test
+			filename: applog
+			loglevel: 2
+			enable: true
+			num: 50
+			The non-flag command-line arguments are:
+				10
+				20
+				30
+			test
+
+	The nonflag command-line arguments must be provided after giving the flags.
+	The flag -h or --help provides help for the use of the command-line program.
+	This help text will be generated from the flag definitions defined in the program. Let’s run the program by providing the -h flag.
+		$ ./ cmdflags -h
+			Usage of cmdflags:
+			  -enable
+			        A boolean value for enabling log options
+			  -filename string
+			        File name for the log file (default "logfile")
+			  -loglevel int
+			        An integer value for Level (0-4)
+			  -num int
+			        An integer value (default 25)
+
+	Let’s now run the program by providing few flags without nonflag arguments:
+		$ ./ cmdflags -filename=applog -loglevel=1
+			filename: applog
+			loglevel: 1
+			enable: false
+			num: 25
+			110
+

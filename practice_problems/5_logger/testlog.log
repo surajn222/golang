@@ -1,0 +1,3 @@
+INFO2024/02/24 12:03:27 main.go:39: Info log
+ERROR2024/02/24 12:03:27 main.go:40: Error log
+WARNING2024/02/24 12:03:27 main.go:41: Warn log

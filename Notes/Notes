@@ -1,0 +1,899 @@
+Go%20Recipes.pdf
+
+ 2-1. Writing Functions in Go
+
+The keyword func is used to declare functions. A function is declared with a name, a list of parameters, an
+ optional list of return types, and a body to write the logic for the function.
+
+ func name(list of parameters) (list of return types)
+ {
+  function body to write the logic
+ }
+
+Naming Return Values
+ func Add(x, y int) (result int) {
+  result = x + y
+  return
+ }
+
+  Returning Multiple Values
+
+  package main
+  import (
+   "fmt"
+  )
+  func Swap(x, y string) (string, string) {
+   return y, x
+  }
+  func main() {
+   x, y := "Shiju", "Varghese"
+   fmt.Println("Before Swap:", x, y)
+   x, y = Swap(x, y)
+   fmt.Println("After Swap:", x, y)
+  }
+
+
+A variadic function is a function that accepts a variable number of arguments.
+
+ Variadic Functions
+
+ Listing 2-6. Example Program with Variadic Function
+ package main
+ import (
+  "fmt"
+ )
+ func Sum( nums ...int) int {
+  total := 0
+  for _, num := range nums {
+  total += num
+  }
+  return total
+ }
+ func main() {
+  // Providing four arguments
+  total := Sum(1, 2, 3, 4)
+  fmt.Println("The Sum is:", total)
+  // Providing three arguments
+  total = Sum(5, 7, 8)
+  fmt.Println("The Sum is:", total)
+ }
+
+Function Values, Anonymous Functions, and Closures
+
+
+Listing 2-8. Example Program Demonstrating Passing Function as Value, Anonymous Function, and Closure
+
+package main
+import (
+ "fmt"
+)
+func SplitValues(f func(sum int) (int, int)) {
+ x, y := f(35)
+ fmt.Println(x, y)
+ x, y = f(50)
+ fmt.Println(x, y)
+}
+func main() {
+ a, b := 5, 8
+ fn := func(sum int) (int, int) {
+ x := sum * a / b
+ y := sum - x
+ return x, y
+}
+ // Passing function value as an argument to another function
+SplitValues(fn)
+ // Calling the function value by providing argument
+ x, y := fn(20)
+ fmt.Println(x, y)
+}
+
+
+In the main function, an anonymous function is declared and assigned the value of anonymous function
+to a variable named fn .
+ a, b := 5, 8
+ fn := func(sum int) (int, int) {
+     x := sum * a / b
+     y := sum - x
+     return x, y
+ }
+
+ The anonymous function is declared within the main function. In Go, you can write functions within the
+ function. The anonymous function split a value into two values using an arbitrary logic. To form the arbitrary
+ logic, it accesses the values of a couple of variables declared in an outer function in the main function.
+  The anonymous function is assigned to variable fn and passes the function value to another function
+ named SplitValues .
+ SplitValues(fn)
+  The SplitValues function receives a function as an argument.
+ func SplitValues(f func(sum int) (int, int)) {
+  x, y := f(35)
+  fmt.Println(x, y)
+  x, y = f(50)
+  fmt.Println(x, y)
+ }
+  Within the SplitValues function the parameter value that is a function that passes as an argument
+ is called couple of times to split the values into two values. The returned values are printed to the console
+ window.
+  Let’s go back to the anonymous function. Within the main function, the value of the anonymous
+ function is used for two things: calling the SplitValues function by passing the function value as an
+ argument, and directly calling the function value by providing a value as an argument to split an integer
+ value.
+ // Passing function value as an argument to another function
+  SplitValues(fn)
+  // Calling the function value by providing argument
+  x, y := fn(20)
+  fmt.Println(x, y)
+It is important to note that the anonymous function is accessing the two variables declared in the outer
+ function:
+ a, b := 5, 8.
+
+
+  2-2. Working with Arrays
+
+ Declaring and Initializing Arrays
+
+var x [5]int
+x[0]=5
+y := [5]int {5,10,15,20,25}
+langs := [4]string{0: "Go", 3: "Julia"}
+
+
+An array of string type is declared with four as the size, but provides values only for the first element (index 0) and the last element (index 3). You will get default values for the elements that didn’t get initialized. For string type it is empty string, for integer type it is 0, and for boolean type it is false. If you try to return the value of langs[1] , you will get an empty string. You can provide values for the rest of elements at
+any time as usual:
+langs[1] = "Rust"
+langs[2] = "Scala"
+
+When you declare and initialize arrays with the array literal you can provide the initialization expression in a multiline statement as shown here:
+y := [5]int {
+ 5,
+ 10,
+ 15,
+ 20,
+ 25,
+ }
+
+When you declare arrays, you always specify the length of the array, but when you declare and initialize arrays, you can use the expression … instead of specifying the length, as shown here:
+z := [...] { 5,10,15,20,25}
+
+
+
+
+Iterating over Arrays
+  Because an array is a collection type, you might want to iterate over the elements of arrays. Here is the code block that iterates over the elements of an array using the normal for loop:
+ langs := [4]string{"Go", "Rust", "Scala","Julia"}
+ for i := 0; i < len(langs); i++ {
+  fmt.Printf("langs[%d]:%s \n", i, langs[i])
+  }
+
+
+Go has a range construct that lets you iterate over elements in various collection types. Go programmers typically use the range construct for iterating over the elements of data structures such as arrays, slices, and maps.
+for k, v := range langs {
+ fmt.Printf("langs[%d]:%s \n", k, v)
+ }
+
+The range construct on arrays provides both the index and value for each element in the collection. In our example code block, variable k gets the index and variable v gets the value of the element. If you don’t want to us the value of any variable you declare on the left side, you can ignore it by using a blank identifier
+ ( _ ) as shown here:
+ for _, v := range langs {
+  fmt.Printf(v)
+  }
+
+
+ 2-3. Working with Dynamic Arrays Using Slices
+ Go’s slice type allows you to store a dynamic length of elements of a single type.
+
+ var x []int
+ y:= make ([]int, 3,5)
+
+y:= make ([]int, 3)
+
+
+Creating Slices Using a Slice Literal
+
+In addition to creating slices using the make function, you can also create slices using a slice literal, which is similar to an array literal. Here is the code block that creates a slice using a slice literal:
+z:= []int {10,20,30}
+
+A slice z is declared and initialized with length of 3 and capacity of 3.
+When you initialize the values, you can provide values to specific indexes as shown here:
+z:= []int {0:10, 2:30}
+
+ A slice z is created and initialized with length of 3 and capacity of 3. When you create slices using this approach, the length is determined by the highest index value you have specified, so you can also create a slice by simply providing the highest index, as shown here:
+z:= []int {2:0}
+ A slice z is created by initializing a zero value for index 2, so the capacity and length of the slice will be 3.
+ By using a slice literal, you can also create an empty slice:
+z:= []int{}
+ A slice z is created with zero elements of value. An empty slice is useful when you want to return empty collections from functions. Let’s say that you provide a function that queries data from a database table and returns a slice by filling in the data of the table. Here you can return an empty slice if the table doesn’t contain any data. Note that nil slices and empty slices are different. If z is an empty slice, a code expression z == nil returns false , but if it is a nil slice, the expression z == nil returns true .
+
+
+Enlarging Slices with copy and append Functions
+
+Listing 2-10. Program to Enlarge a Slice Using the copy Function
+package main
+import (
+ "fmt"
+)
+func main() {
+ x := []int{10, 20, 30}
+ fmt.Printf("[Slice:x] Length is %d Capacity is %d\n", len(x), cap(x))
+ // Create a bigger slice
+ y := make([]int, 5, 10)
+ copy(y, x)
+ fmt.Printf("[Slice:y] Length is %d Capacity is %d\n", len(y), cap(y))
+ fmt.Println("Slice y after copying:", y)
+ y[3] = 40
+ y[4] = 50
+ fmt.Println("Slice y after adding elements:", y)
+}
+
+[Slice:x] Length is 3 Capacity is 3
+[Slice:y] Length is 5 Capacity is 10
+Slice y after copying: [10 20 30 0 0]
+Slice y after adding elements: [10 20 30 40 50]
+
+
+Listing 2-11. Program That Enlarges a Slice Using the append Function
+package main
+import (
+ "fmt"
+)
+func main() {
+CHAPTER 2 ■ GO FUNDAMENTALS
+40
+ x := make([]int, 2, 5)
+ x[0] = 10
+ x[1] = 20recipes for arrays
+ fmt.Println("Slice x:", x)
+ fmt.Printf("Length is %d Capacity is %d\n", len(x), cap(x))
+ // Create a bigger slice
+ x = append(x, 30, 40, 50)
+ fmt.Println("Slice x after appending data:", x)
+ fmt.Printf("Length is %d Capacity is %d\n", len(x), cap(x))
+ x = append(x, 60, 70, 80)
+ fmt.Println("Slice x after appending data for the second time:", x)
+ fmt.Printf("Length is %d Capacity is %d\n", len(x), cap(x))
+}
+
+
+Listing 2-12. Appending Data to a Nil Slice
+package main
+import "fmt"
+func main() {
+ // Declare a nil slice
+ var x []int
+ fmt.Println(x, len(x), cap(x))
+ x = append(x, 10, 20, 30)
+ fmt.Println("Slice x after appending data:", x)
+}
+ You should see the following output when you run the program:
+[] 0 0
+Slice x after appending data: [10 20 30]
+
+
+
+
+Iterating Over Slices
+ An idiomatic approach for iterating over the elements of a slice is to use a range construct. Listing 2-13
+shows an example program that iterates over the elements of a slice.
+ Listing 2-13. Program to Iterate Over the Elements of a Slice
+package main
+import (
+ "fmt"
+)
+func main() {
+ x := []int{10, 20, 30, 40, 50}
+ for k, v := range x {
+ fmt.Printf("x[%d]: %d\n", k, v)
+ }
+}
+ You should see the following output when you run the program:
+x[0]: 10
+x[1]: 20
+x[2]: 30
+x[3]: 40
+x[4]: 50
+
+
+2-4. Persisting Key/Value Pairs Using Map
+
+Go’s map type is a data structure that provides an implementation of a hash table (known as HashMap in
+Java). A hash table implementation allows you to persist data elements as keys and values. A hash table
+provides fast lookups on the data element, as you can easily retrieve a value by providing the key.
+
+
+Declaring and Initializing Maps
+ Here is a definition of a map type:
+map[KeyType]ValueType
+ Here KeyType is the type of key and ValueType is the type of value. Here is the code block that declares a map:
+var chapts map[int]string
+ A map chapts is declared with int as the type for key and string as the type for value. At this moment,
+the value of map chapts is nil because the map doesn’t get initialized. An attempt to write values to a nil
+map will cause a runtime error. You need to initialize maps before writing values to them. The built-in make
+function is used to initialize maps, as shown here:
+chapts = make(map[int] string)
+ The map chapts is initialized using the make function. Let’s add a few data values to the map:
+chapts[1]="Beginning Go"
+chapts[2]="Go Fundamentals"
+chapts[3]="Structs and Interfaces"
+ It is important to note that you cannot add duplicate keys to the map.
+ You can also declare and initialize a map using a map literal, as shown here:
+langs := map[string]string{
+ "EL": "Greek",
+ "EN": "English",
+ "ES": "Spanish",
+ "FR": "French",
+ "HI": "Hindi",
+ }
+
+  A map langs is declared with string as the type for both key and value, and values are initialized using
+ the map literal.
+
+
+
+Working with Maps
+ Maps provide fast lookups on the data elements in the data structure. You can easily retrieve the value of an
+element by providing the key shown here:
+lan, ok := langs["EN"]
+ A lookup performed on the map by providing a key returns two values: the value of the element and a
+boolean value that indicates whether or not the lookup was successful. The variable lan gets the value of the
+element for the key "EN" , and the variable ok gets a boolean value: true if a value exists for the key "EN" and
+false if the key doesn’t exist. Go provides a convenient syntax for writing an if statement that can be used
+for writing a lookup statement:
+if lan, ok := langs["EN"]; ok {
+ fmt.Println(lan)
+}
+CHAPTER 2 ■ GO FUNDAMENTALS
+43
+ When writing an if statement as multiple statements on a single line, the statements are separated by
+semicolon (;) and the last expression should have a boolean value.
+ To remove items from a map, use the built-in function delete by providing the key. The delete function
+removes an element for the given key from the map and doesn’t return anything. Here is the code block that
+deletes an element from langs map for the key "EL" .
+delete(langs,"EL")
+
+
+
+ Iteration Order of Maps
+ When you iterate over a map with a range construct, the iteration order is not specified and hence the same
+result is not guaranteed from one iteration, as Go randomizes map iteration order. If you want to iterate a
+map with a specific order, you must maintain a data structure to specify that order. Listing 2-15 shows an
+example program that iterates over a map with an order. To specify the order, this example maintains a slice
+to store sorted keys of a map.
+ Listing 2-15. Iterate over a Map With an Order
+package main
+import (
+ "fmt"
+ "sort"
+)
+func main() {
+ // Initialize map with make function
+ chapts := make(map[int]string)
+ // Add data as key/value pairs
+ chapts[1] = "Beginning Go"
+ chapts[2] = "Go Fundamentals"
+ chapts[3] = "Structs and Interfaces"
+ // Slice for specifying the order of the map
+ var keys []int
+ // Appending keys of the map
+ for k := range chapts {
+ keys = append(keys, k)
+ }
+ // Ints sorts a slice of ints in increasing order.
+ sort.Ints(keys)
+ // Iterate over the map with an order
+ for _, k := range keys {
+ fmt.Println("Key:", k, "Value:", chapts[k])
+ }
+}
+CHAPTER 2 ■ GO FUNDAMENTALS
+45
+ You should see the following output:
+Key: 1 Value: Structs and Interfaces
+Key: 2 Value: Go Fundamentals
+Key: 3 Value: Beginning Go
+
+
+
+ 2-5. Writing Clean-Up Code in Functions
+
+ How It Works
+  A defer statement in a function pushes a function call or a code statement onto a list of saved calls. You
+ can add multiple defer statements inside a function. These deferred function calls from the saved list are
+ executed after the surrounding function returns. A defer statement is commonly used to write clean-up
+ logic inside functions to release resources that you have created in them. For example, let’s say that you
+ have opened a database connection object inside a function, where you can schedule the connection object
+ to close to clean up the resources of the connection object after the function returns. The defer statement
+ is often used for close , disconnect , and unlock statements against open , connect , or lock statements.
+ The defer statement ensures that the deferred list of function calls is invoked in all cases, even when an
+ exception occurs.
+
+ Listing 2-16. Defer Statement Used to Close a File Object
+ import (
+  "io/ioutil"
+  "os"
+ )
+ func ReadFile(filename string) ([]byte, error) {
+  f, err := os.Open(filename)
+  if err != nil {
+  return nil, err
+  }
+  defer f.Close()
+  return ioutil.ReadAll(f)
+ }
+
+We open a file object f to read its contents. To ensure object f is releasing its resources, we add the code
+statement f.Close() to the deferred list of function calls. A defer statement to release a resource is often
+written after the resource has been created without any error. We write defer f.Close() immediately after
+the object f has been successfully created.
+ f, err := os.Open(filename)
+ if err != nil {
+ return nil, err
+ }
+ defer f.Close()
+ Using defer for writing clean-up logic is similar to using finally blocks in other programming
+languages like C# and Java. In the try/catch/finally block, you write clean-up logic in the finally block
+for the resources that have been created in the try block. Go’s defer is more powerful than the finally
+block of a conventional programming language. For example, combining defer and recover statements,
+you can regain control from a panicking function. We cover panic and recover in the next sections of this
+chapter.
+
+
+ 2-6. Stopping the Execution Flow of Control Using Panic
+
+
+2-6. Stopping the Execution Flow of Control Using Panic
+ Problem
+ You would like to stop the execution flow of control in functions and begin panicking when your program is
+having critical errors.
+ Solution
+ Go provides a built-in panic function that stops the normal execution of a program and begins panicking.
+ How It Works
+ When the Go runtime detects any unhandled error during execution, it panics and stop the execution.
+Therefore, all runtime errors cause panic in your program. By explicitly calling the built-in panic function,
+you can create the same situation; it stops the normal execution and begins panicking. The panic function
+is often called in situations in which continuing the execution is almost impossible. For example, if you are
+trying to connect to a database and are unable to, then continuing the execution of the program doesn’t
+make any sense because your application depends on the database. Here you can call the panic function
+to stop the normal execution and panic your program. The panic function accepts a value of any type as
+an argument. When a panic is happening inside a function, it stops normal execution of the function, all
+deferred function calls in that function are executed, and then the caller function gets a panicking function.
+It is important that all deferred functions are executed before stopping the execution. The Go runtime
+ensures that defer statements are executed in all cases, including a panic situation.
+ Listing 2-17 shows a code block that calls panic when attempting to open a file results in an error; it
+calls panic by providing an error object as an argument.
+ Listing 2-17. Using panic to Panic a Function
+import (
+ "io/ioutil"
+CHAPTER 2 ■ GO FUNDAMENTALS
+47
+ "os"
+)
+func ReadFile(filename string) ([]byte, error) {
+ f, err := os.Open(filename)
+ if err != nil {
+ panic (err) // calls panic
+ }
+ defer f.Close()
+ return ioutil.ReadAll(f)
+}
+
+
+2-7. Recovering a Panicking Function Using Recover
+ Problem
+ You would like to regain control of a panicking function.
+ Solution
+ Go provides a built-in recover function that lets you regain control of a panicking function; hence, it is used
+only with deferred functions. The recover function is used inside the deferred functions to resume normal
+execution of a panicking function.
+ How It Works
+ When a function is panicking, all deferred function calls in that function are executed before normal
+execution stops. Here a call to recover inside the deferred function gets the value given to panic and regains
+control of normal execution. In short, you can resume normal execution using recover even after a panick
+situation.
+ Listing 2-18 shows an example of panic recovery using recover .
+ Listing 2-18. Example that demonstrates recover
+package main
+import (
+ "fmt"
+)
+func panicRecover() {
+CHAPTER 2 ■ GO FUNDAMENTALS
+48
+ defer fmt.Println("Deferred call - 1")
+ defer func() {
+ fmt.Println("Deferred call - 2")
+ if e := recover(); e != nil {
+ // e is the value passed to panic()
+ fmt.Println("Recover with: ", e)
+ }
+ }()
+ panic("Just panicking for the sake of example")
+ fmt.Println("This will never be called")
+}
+
+
+func main() {
+ fmt.Println("Starting to panic")
+ panicRecover()
+ fmt.Println("Program regains control after the panic recovery")
+}
+ This example program demonstrates how to resume the normal execution of a panicking function
+using the recover function. Inside the function panicRecover , two deferred functions have been added.
+Of the two deferred function calls, the second one is an anonymous function in which recover is called to
+resume execution even after a panic situation. It is important to understand that you can add any number
+of deferred function calls inside a function. The order of the execution of deferred functions is last added,
+first in order. For example, panic is explicitly called by providing a string value as an argument. This value
+can be retrieved by calling the recover function. When the panic function is called, the flow of control goes
+to deferred functions, where the recover function is called from the second deferred function (this will be
+invoked first when deferred function calls are executing). When the recover is called it receives the value
+given to panic and resumes normal execution and the program runs as normal.
+ You should see the following output when you run the program:
+Starting to panic
+Deferred call - 2
+Recover with: Just panicking for the sake of example
+Deferred call - 1
+Program regains control after the panic recovery
+
+
+
+ 2-8. Performing Error Handling
+ Problem
+ You would like to perform error handling in Go applications.
+ Solution
+ Go provides a built-in error type that is used to signal errors in functions. Go functions can return multiple
+values. This can be used to implement exception handling in functions by returning an error value along
+with other return values, and hence caller functions can check whether the functions provide an error value.
+CHAPTER 2 ■ GO FUNDAMENTALS
+49
+ How It Works
+ Unlike many other programming languages, Go does not provide a try/catch block to handle exceptions.
+Instead of it, you can use the built-in error type to signal exceptions to caller functions. If you can look into
+the function of standard library packages you will get a better understanding about how to handle exceptions
+in Go. Most of the functions of standard library packages return multiple values, including an error value. An
+idiomatic way of returning an error value in functions is to provide the error value after other values provided
+in the return statement. In the return statement, therefore, the error value would be the last argument. In
+Listing 2-14 , you called the Open function of the standard library package os to open a file object.
+f, err := os.Open(filename)
+ if err != nil {
+ return nil, err
+ }
+ The Open function returns two values: a file object and an error value. Check the returned error value
+to identify whether any exception has occurred while opening the file. If the error value returns a nonnil
+value, it means that an error has occurred.
+ Here is the source of the Open function in the os package:
+// Open opens the named file for reading. If successful, methods on
+// the returned file can be used for reading; the associated file
+// descriptor has mode O_RDONLY.
+// If there is an error, it will be of type *PathError.
+func Open(name string) (*File, error) {
+ return OpenFile(name, O_RDONLY, 0)
+}
+
+
+Listing 2-19. Example Function That Provides error Value
+func Login(user User) (User, error) {
+ var u User
+ err = C.Find(bson.M{"email": user.Email}).One(u)
+ if err != nil {
+ return nil, err
+ }
+ err = bcrypt.CompareHashAndPassword(u.HashPassword, []byte(user.Password))
+ if err != nil {
+ return nil, err
+ }
+ return u, nil
+}
+ The Login function returns two values, including an error value. Here is the code block that calls the
+Login function and verifies if the function returns any nonnil error value:
+if user, err := repo.Login(loginUser); err != nil {
+ fmt.Println(err)
+}
+// Implementation here if error is nil
+
+
+ In this code block, the caller function checks the returned error value; if the error value returns a nonnil. value, it indicates that the function returns an error. If the returned error value is nil, it indicates that
+the function call was successful without any error. When the fmt.Println function gets an error value as
+an argument, it formats the error value by calling its Error() string method. Ther Error method of error
+value returns the error message as string. The caller functions can be used with the Error method to get
+error messages as strings.
+Message := err.Error()
+ When you return error values, you can provide descriptive error values to the caller functions. By
+using the New function of the errors package, you can provide descriptive error values as shown here:
+func Login(user User) (User, error) {
+ var u User
+ err = C.Find(bson.M{"email": user.Email}).One(u)
+ if err != nil {
+ return nil, errors.New("Email doesn't exists")
+ }
+ // Validate password
+ err = bcrypt.CompareHashAndPassword(u.HashPassword, []byte(user.Password))
+ if err != nil {
+ return nil, errors.New("Invalid password")
+ }
+ return u, nil
+}
+ The errors.New function returns an error value that is used to provide descriptive error values to the
+caller functions. The Errorf function of the fmt package lets you use the formatting capabilities of the fmt
+package to create descriptive error values, as shown here:
+func Login(user User) (User, error) {
+ var u User
+ err = C.Find(bson.M{"email": user.Email}).One(u)
+ if err != nil {
+ errObj:= fmt.Errorf("User %s doesn't exists. Error:%s, user.Email, err.
+Error())
+ return nil, errObj
+ }
+ // Validate password
+ err = bcrypt.CompareHashAndPassword(u.HashPassword, []byte(user.Password))
+ if err != nil {
+ errObj:= fmt.Errorf("Invalid password for the user:%s. Error:%s, user.Email,
+err.Error())
+ return nil, errObj
+ }
+ return u, nil
+}
+
+
+ The preceding code block uses the fmt.Errorf function to use the fmt package’s formatting features to
+create descriptive error values.
+CHAPTER 2 ■ GO FUNDAMENTALS
+51
+ A function in Go is a reusable piece of code that organizes a sequence of code statements as a unit. The
+keyword func is used to declare functions. Functions are exported to other packages if their names start with
+an uppercase letter. One unique feature of Go functions is that they can return multiple values.
+ Go provides three types of data structures to work with collections of data: arrays, slices, and maps.
+An array is a fixed-length type that contains sequence of elements of a single type. An array is declared by
+specifying a length and type. A slice is similar to an array, but its size can be varied at any time, so you don’t
+have to specify the length of the slice. Slices are initialized using the built-in make function or the slice literal.
+Slices can be modified using two built-in functions: append and copy . A map is an implementation of a hash
+table that provides an unordered collection of key/value pairs. Maps are initialized using the built-in make
+function or using a map literal.
+ Go provides defer, which can be used to write clean-up logic in functions. A defer statement pushes
+a function call onto a saved list which is executed after the surrounding function returns. Panic is a builtin function that lets you stop normal execution and begins the panic of a function. Recover is a built-in
+function that regains control of a panicking function. Recover is used only inside the deferred functions.
+ Go uses a different and unique approach for implementing exception handling in Go code. Because Go
+functions can return multiple values, an error value is provided with the return statement, along with other
+return values. In this way, the caller functions can check the returned error value to identify whether there is
+any error or not.
+
+
+
+ 3-1. Creating User-Defined Types
+
+ Go struct lets you create your own types by combining one or more types, including both built-in and
+ user-defined types. Structs are the only way to create concrete user-defined types in Go. When you create
+ your own types using struct , it is important to understand that Go does not provide support for inheritance
+ in its type system, but it favors composition of types that lets you create larger types by combining smaller
+ types. The design philosophy of Go is to create larger components by combining smaller and modular
+ components. If you are a pragmatic programmer, you will appreciate the design philosophy of Go that
+ favors composition over inheritance because of its practical benefits. The inheritance of types sometimes
+ introduces practical challenges with regard to maintainability.
+ CHAPTER 3 ■ STRUCTS AND INTERFACES
+ 54
+  Declaring Struct Types
+  The keyword struct is used to declare a type as struct. Listing 3-1 shows an example struct that represents a
+ customer’s information.
+  Listing 3-1. Declare Struct Type
+ type Customer struct {
+  FirstName string
+  LastName string
+  Email string
+  Phone string
+ }
+
+
+Listing 3-2. Declare Struct Type
+type Customer struct {
+ FirstName, LastName, Email, Phone string
+}
+
+
+ Creating Instances of Struct Types
+ You can create instances of struct types by declaring a struct variable or using a struct literal .
+Listing 3-3 shows the code block that creates an instance of Customer struct by declaring a struct variable
+and assigning values to the fields of struct.
+ Listing 3-3. Creating a Struct Instance and Assigning Values
+var c Customer
+c.FirstName = "Alex"
+c.LastName = "John"
+c.Email = "alex@email.com"
+c.Phone = "732-757-2923"
+ An instance of Customer type is created and values are assigned to the struct fields one by one. A struct
+literal can also be used for creating instances of struct types. Listing 3-4 shows the code block that creates
+an instance of Customer struct by using a struct literal and assigning values to the fields of the struct.
+CHAPTER 3 ■ STRUCTS AND INTERFACES
+55
+ Listing 3-4. Creating a Struct Instance Using a Struct Literal
+c := Customer{
+ FirstName: "Alex",
+ LastName: "John",
+ Email: "alex@email.com",
+ Phone: "732-757-2923",
+}
+ An instance of Customer type is created using the struct literal and values are assigned to the struct
+fields. Note that a comma is added even after the initialization to the last field of struct. When you create
+instances of a struct using the struct literal, you can initialize values as a multiline statement but you must
+put a comma even after end of the assignment to the struct fields. In Listing 3-4 , you initialized values by
+specifying the struct fields. If you clearly know the order of the fields, you can omit the field identifiers while
+initializing the values as shown in the Listing 3-5 .
+
+Listing 3-5. Creating a Struct Instance Using a Struct Literal
+c := Customer{
+ "Alex",
+ "John",
+ "alex@email.com",
+ "732-757-2923",
+}
+ When you create struct instances using a struct literal, you can provide the values to specific fields of the
+struct as shown in Listing 3-6 .
+ Listing 3-6. Creating a Struct Instance Using a Struct Literal by Specifying Values to a Few Fields
+c := Customer{
+ FirstName: "Alex",
+ Email: "alex@email.com",
+}
+
+
+Using User-Defined Types as the Type for Fields
+ The Customer struct was created using fields of built-in types. You can use other struct types as the type for
+the fields of structs. Let’s expand the Customer struct by adding a new field to hold address information with
+a struct as the type for the new field. Listing 3-7 shows the Customer struct expanded by adding a new field
+with its type as a slice of Address type.
+ Listing 3-7. Customer Struct with a Slice of a User-Defined Type as the Type for Field
+type Address struct {
+ Street, City, State, Zip string
+ IsShippingAddress bool
+}
+type Customer struct {
+ FirstName, LastName, Email, Phone string
+ Addresses []Address
+}
+CHAPTER 3 ■ STRUCTS AND INTERFACES
+56
+ The Customer struct has been expanded by adding a new field, Addresses , for which the type is
+specified as a slice of a struct named Address . Using the Addresses field, you can specify multiple addresses
+for a customer. The IsShippingAddress field is used to specify a default shipping address. Listing 3-8 shows
+the code block that creates an instance of this modified Customer struct.
+
+Listing 3-8. Creating an Instance of Customer Struct
+c := Customer{
+ FirstName: "Alex",
+ LastName: "John",
+ Email: "alex@email.com",
+ Phone: "732-757-2923",
+ Addresses: []Address{
+ Address{
+ Street: "1 Mission Street",
+ City: "San Francisco",
+ State: "CA",
+ Zip: "94105",
+ IsShippingAddress: true,
+ },
+ Address{
+ Street: "49 Stevenson Street",
+ City: "San Francisco",
+ State: "CA",
+ Zip: "94105",
+ },
+ },
+}
+
+
+ 3-2. Adding Methods to Struct Types
+
+
+ How It Works
+ In Go, a method is a function that is specified with a receiver. Let’s add a method to the Customer struct.
+func (c Customer) ToString() string {
+ return fmt.Sprintf("Customer: %s %s, Email:%s", c.FirstName, c.LastName, c.Email)
+}
+CHAPTER 3 ■ STRUCTS AND INTERFACES
+57
+ A method ToString is added to the Customer struct. The receiver is specified using an extra parameter
+section preceding the method name. Inside the methods, you can access the fields of receiver type using the
+identifier of receiver. The ToString method returns the customer name and email as a string by accessing
+the struct fields.
+
+return fmt.Sprintf("Customer: %s %s, Email:%s", c.FirstName, c.LastName, c.Email)
+ Listing 3-9 shows an example program that declares the Customer struct and adds a couple of methods
+to it.
+ Listing 3-9. Struct with Methods
+package main
+import (
+ "fmt"
+)
+type Address struct {
+ Street, City, State, Zip string
+ IsShippingAddress bool
+}
+type Customer struct {
+ FirstName, LastName, Email, Phone string
+ Addresses []Address
+}
+func (c Customer) ToString() string {
+ return fmt.Sprintf("Customer: %s %s, Email:%s", c.FirstName, c.LastName, c.Email)
+}
+func (c Customer) ShippingAddress() string {
+ for _, v := range c.Addresses {
+ if v.IsShippingAddress == true {
+ return fmt.Sprintf("%s, %s, %s, Zip - %s", v.Street, v.City, v.State,
+v.Zip)
+ }
+ }
+ return ""
+}
+
+func main() {
+ c := Customer{
+ FirstName: "Alex",
+ LastName: "John",
+ Email: "alex@email.com",
+ Phone: "732-757-2923",
+ Addresses: []Address{
+ Address{
+ Street: "1 Mission Street",
+ City: "San Francisco",
+ State: "CA",
+CHAPTER 3 ■ STRUCTS AND INTERFACES
+58
+ Zip: "94105",
+ IsShippingAddress: true,
+ },
+ Address{
+ Street: "49 Stevenson Street",
+ City: "San Francisco",
+ State: "CA",
+ Zip: "94105",
+ },
+ },
+ }
+ fmt.Println(c.ToString())
+ fmt.Println(c.ShippingAddress())
+}
+
+The Customer struct is attached to a couple of methods by specifying the method receiver. The ToString
+returns the customer name and email and ShippingAddress returns the default shipping address from the
+list of addresses stored in the Addresses field. Inside the main function, an instance of the Customer struct is
+created and its methods are invoked.
+ You should see the following output when you run the program:
+Customer: Alex John, Email:alex@email.com
+1 Mission Street, San Francisco, CA, Zip - 94105
+ A method is a function with a receiver. There are two types of method receivers: the pointer receiver and
+the value receiver . The program in Listing 3-9 uses a value receiver to add methods to the Customer struct.
+When a method is specified with a pointer receiver, the method is invoked with a pointer to the receiver
+value, and a copy of the receiver value is used when the method is specified with a value receiver. Hence you
+must use a pointer receiver if you want to mutate the state (value of fields) of the receiver.
+ Let’s add a new method to the Customer struct (see Listing 3-9 ) to explore the pointer receiver. First, let’s
+add the method by specifying the receiver without a pointer.
+func (c Customer) ChangeEmail(newEmail string) {
+ c.Email = newEmail
+}
+ The newly added ChangeEmail method assigns a new email address to the Email field. Let’s create an
+instance of Customer struct and invoke the ChangeEmail method by passing a new email address.
+
+c := Customer{
+ FirstName: "Alex",
+ LastName: "John",
+ Email: "alex@gmail.com",
+ Phone: "732-757-2923",
+ Addresses: []Address{
+ Address{
+ Street: "1 Mission Street",
+ City: "San Francisco",
+ State: "CA",
+ Zip: "94105",
+CHAPTER 3 ■ STRUCTS AND INTERFACES
+59
+ IsShippingAddress: true,
+ },
+ Address{
+ Street: "49 Stevenson Street",
+ City: "San Francisco",
+ State: "CA",
+ Zip: "94105",
+ },
+ },
+ }
+ // Call ChangeEmail
+ c.ChangeEmail("alex.john@gmail.com")
+ fmt.Println(c.ToString())
+
+
+
+

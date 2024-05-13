@@ -1,0 +1,278 @@
+Logging Go Programs
+
+
+The standard library package log provides a basic infrastructure for logging that can be used for logging your Go programs.
+How It Works
+Although there are many third-party packages available for logging, the standard library package log should be your choice of package if you want to stay with the standard library or use a simple package.
+
+The package log allows you to write log messages into all the standard output devices that support the io.Writer interface.
+The struct type log.Logger is the major component in the package log, which provides several methods for logging that also support formatting log data.
+
+To work with package log, you must add it to the list of imports:
+
+import (
+       "log"
+)
+
+Listing 5-4 shows an example program that provides a basic logging implementation using log.Logger type.
+The log messages are categorized as Trace, Information, Warning and Error, and four log.Logger objects are used for each log category.
+
+Listing5-4. ABasicLoggingImplementationwithCategorizedLoggingforTrace,Information,Warning, and Error Messages
+
+        package main
+        import (
+                "errors"
+                "io"
+                "io/ioutil"
+                "log"
+                "os"
+        // Package level variables, which are pointers to log.Logger.
+        var (
+                Trace   *log.Logger
+                Info    *log.Logger
+        )
+        // initLog initializes log.Logger objects
+        func initLog(
+        }
+        }
+
+        // Four pointers to type log.Logger are declared for categorized logging for Trace, Information, Warning, and Error. The log.Logger objects are created by calling the function initLog that receives arguments of interface io.Writer to set the destination of logging messages.
+        traceHandle io.Writer,
+        infoHandle io.Writer,
+        warningHandle io.Writer,
+        errorHandle io.Writer) {
+        // Flags for defineing the logging properties, to log.New
+        flag := log.Ldate | log.Ltime | log.Lshortfile
+        // Create log.Logger objects
+        Trace = log.New(traceHandle, "TRACE: ", flag)
+        Info = log.New(infoHandle, "INFO: ", flag)
+        Warning = log.New(warningHandle, "WARNING: ", flag)
+        Error = log.New(errorHandle, "ERROR: ", flag)
+
+        func main() {
+                initLog(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+                Trace.Println("Main started")
+                loop()
+                err := errors.New("Sample Error")
+                Error.Println(err.Error())
+                Trace.Println("Main completed")
+        }
+
+        func loop() {
+        Trace.Println("Loop started")
+        for i := 0; i < 10; i++ {
+                Info.Println("Counter value is:", i)
+        }
+
+        Warning.Println("The counter variable is not being used")
+        Trace.Println("Loop completed")
+
+
+
+// initLog initializes log.Logger objects
+        func initLog(
+        }
+        traceHandle io.Writer,
+        infoHandle io.Writer,
+        warningHandle io.Writer,
+        errorHandle io.Writer) {
+        // Flags for defining the logging properties, to log.New
+        flag := log.Ldate | log.Ltime | log.Lshortfile
+        // Create log.Logger objects
+        Trace = log.New(traceHandle, "TRACE: ", flag)
+        Info = log.New(infoHandle, "INFO: ", flag)
+        Warning = log.New(warningHandle, "WARNING: ", flag)
+        Error = log.New(errorHandle, "ERROR: ", flag)
+        The function log.New creates a new log.Logger. In the function New, the first parameter sets the destination of the log data, the second parameter sets a prefix that appears at the beginning of each generated log line, and the third parameter defines the logging properties. The given logging properties provide date, time, and a short file name in the log data. The log data can be written to any destination that supports the interface io.Writer. The function initLog is invoked from the function main.
+        initLog(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+
+The ioutil.Discard is given to the destination for Trace, which is a null device so that all log write calls for this destination will succeed without doing anything. The os.Stdout is given to the destination for both Information and Warning so that all log write calls for this destination will appear in the console window. The os.Stderr is given to the destination for Error so that all log write calls for this destination will appear in the console window as standard errors. In this example program, Logger objects for Trace, Information, Warning, and Error are used for logging messages. Because the destination of Trace is configured as ioutil. Discard, the log data will not appear in the console window.
+
+You should see the output similar to the following:
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 0
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 1
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 2
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 3
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 4
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 5
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 6
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 7
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 8
+        INFO: 2016/06/11 18:47:28 main.go:48: Counter value is: 9
+        WARNING: 2016/06/11 18:47:28 main.go:50: The counter variable is not being used
+        ERROR: 2016/06/11 18:47:28 main.go:42: Sample Error
+
+In the preceding example, the log data is written into the Stdout and Stderr interfaces. When you develop real-world applications, however, you might use persistent storage as the destination for log data. You might also require a configurable option for specifying the log level to Trace, Information, Warning, or Error. This enables you to change the log level at any time. For example, you might set the log level to Trace, but you might not need the Trace level log when you move your application into production.
+
+Listing 5-5 shows an example program that provides a logging infrastructure that lets you configure the log level to Trace, Information, Warning, or Error, and then writes log data into a text file. The option for log level can be configured using a command-line flag.
+
+Listing5-5. ALoggingInfrastructurewithanOptiontoSettheLogLevelandWriteLogDataintoaTextFile, in logger.go
+        package main
+        import ( "io"
+                "io/ioutil"
+                "log"
+                "os"
+        const (
+                // UNSPECIFIED logs nothing
+        )
+        )
+        UNSPECIFIED Level = iota // 0 :
+        // TRACE logs everything
+        TRACE // 1
+        // INFO logs Info, Warnings and Errors
+        INFO // 2
+        // WARNING logs Warning and Errors
+        WARNING // 3
+        // ERROR just logs Errors
+        ERROR // 4
+        // Level holds the log level.
+        type Level int
+        // Package level variables, which are pointers to log.Logger.
+        var (
+                Trace   *log.Logger
+                Info    *log.Logger
+                Warning *log.Logger
+                Error   *log.Logger
+        )
+        // initLog initializes log.Logger objects
+        func initLog(
+                traceHandle io.Writer,
+                infoHandle io.Writer,
+                warningHandle io.Writer,
+
+        }
+        errorHandle io.Writer,
+        isFlag bool) {
+        // Flags for defining the logging properties, to log.New
+        flag := 0
+        if isFlag {
+                flag = log.Ldate | log.Ltime | log.Lshortfile
+        }
+        // Create log.Logger objects.
+        Trace = log.New(traceHandle, "TRACE: ", flag)
+        Info = log.New(infoHandle, "INFO: ", flag)
+        Warning = log.New(warningHandle, "WARNING: ", flag)
+        Error = log.New(errorHandle, "ERROR: ", flag)
+        // SetLogLevel sets the logging level preference
+        func SetLogLevel(level Level) {
+                // Creates os.*File, which has implemented io.Writer interface
+                f, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+                if err != nil {
+                        log.Fatalf("Error opening log file: %s", err.Error())
+        }
+                // Calls function initLog by specifying log level preference.
+                switch level {
+                case TRACE:
+                        initLog(f, f, f, f, true)
+                        return
+                case INFO:
+                        initLog(ioutil.Discard, f, f, f, true)
+                        return
+                case WARNING:
+                        initLog(ioutil.Discard, ioutil.Discard, f, f, true)
+                        return
+                case ERROR:
+                        initLog(ioutil.Discard, ioutil.Discard, ioutil.Discard, f, true)
+                        return
+                default:
+                        initLog(ioutil.Discard, ioutil.Discard, ioutil.Discard, ioutil.Discard,
+                        false)
+                        f.Close()
+                        return
+                }
+        }
+
+The logger.go source provides two functions: initLog and SetLogLevel. The function SetLogLevel creates a file object by calling the function OpenFile of the standard library package os, then calling the function initLog to initialize Logger objects by providing the log level preference. It opens the named file with the specified flag. The function initLog creates the Logger objects based on the log preferences provided by the function.
+Constant variables are declared for specifying the log level preference at various levels. The identifier iota is used to construct a set of related constants; here it is used for organizing the available log levels in the application, which produces an autoincremented integer constant. It resets the value to 0 whenever the const appears in the source and increments after each value within a constant declaration.
+
+const (
+        // UNSPECIFIED logs nothing
+)
+UNSPECIFIED Level = iota // 0 :
+// TRACE logs everything
+TRACE // 1
+// INFO logs Info, Warnings and Errors
+INFO // 2
+// WARNING logs Warning and Errors
+WARNING // 3
+// ERROR just logs Errors
+ERROR // 4
+// Level holds the log level.
+
+type Level int
+
+In many programming languages, enumerations or simply enums, are the idiomatic way for declaring constants with similar behavior. Unlike some programming languages, Go does not support a keyword for declaring enumerations. The idiomatic way for declaring enumerations in Go is to declare constants with iota. Here a type named Level with type int is used for specifying the type for constants. The value of the constant UNSPECIFIED resets to 0, then it autoincrements for each constant declaration, 1 for TRACE, 2 for INFO, and so on.
+Listing 5-6 shows a Go source file that uses the logging infrastructure implemented in logger.go (see Listing 5-5).
+
+Listing5-6. LoggingDemoinmain.go,Usinglogger.go
+
+        package main
+        import (
+                "errors"
+        "flag" )
+        func main() {
+                // Parse log level from command line
+                logLevel := flag.Int("loglevel", 0, "an integer value (0-4)")
+                flag.Parse()
+                // Calling the SetLogLevel with the command-line argument
+                SetLogLevel(Level(*logLevel))
+                Trace.Println("Main started")
+                loop()
+                err := errors.New("Sample Error")
+                Error.Println(err.Error())
+                Trace.Println("Main completed")
+        }
+        // A simple function for the logging demo
+        func loop() {
+        }
+        Trace.Println("Loop started")
+        for i := 0; i < 10; i++ {
+                Info.Println("Counter value is:", i)
+        }
+        Warning.Println("The counter variable is not being used")
+        Trace.Println("Loop completed")
+
+In the function main, the value for log level preference is accepted from command-line flag and the function SetLogLevel of logger.go is called to create the Logger objects by specifying the log level preference.
+        logLevel := flag.Int("loglevel", 0, "an integer value (0-4)")
+        flag.Parse()
+// Calling the SetLogLevel with the command-line argument
+SetLogLevel(Level(*logLevel))
+
+In this example, logging is performed using Logger objects for Trace, Information, Warning, and Error. Let’s run the program by providing log level preference to Trace (value 1).
+        $ go build
+        $ ./log -loglevel=1
+
+This writes log data into the text file named logs.txt. The log level to Trace writes log data for Trace, Information, Warning, and Error. You should see log data similar to the following in logs.txt.
+
+        TRACE: 2016/06/13 22:04:28 main.go:14: Main started
+        TRACE: 2016/06/13 22:04:28 main.go:23: Loop started
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 0
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 1
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 2
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 3
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 4
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 5
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 6
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 7
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 8
+        INFO: 2016/06/13 22:04:28 main.go:25: Counter value is: 9
+        WARNING: 2016/06/13 22:04:28 main.go:27: The counter variable is not being used
+        TRACE: 2016/06/13 22:04:28 main.go:28: Loop completed
+        ERROR: 2016/06/13 22:04:28 main.go:17: Sample Error
+        TRACE: 2016/06/13 22:04:28 main.go:18: Main completed
+        Let’s run the program by specifying the log level to Information (value of loglevel to 2). $ ./log -loglevel=2
+
+You should see log data similar to the following appended into logs.txt.
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 0
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 1
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 2
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 3
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 4
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 5
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 6
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 7
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 8
+        INFO: 2016/06/13 22:13:25 main.go:25: Counter value is: 9
+        WARNING: 2016/06/13 22:13:25 main.go:27: The counter variable is not being used
+        ERROR: 2016/06/13 22:13:25 main.go:17: Sample Error
+Because we specified the log level to Information, log data for Information, Warning, and Error are appended into the output file logs.txt, but log data for Trace is written into a null device.

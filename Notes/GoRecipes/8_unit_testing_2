@@ -1,0 +1,135 @@
+// Should cover the below Topics
+2 pdfs
+Golang-The Ultimate Guide
+
+1. any file ending in _test.go
+2. any function like func TestXxx(*testing.T)
+
+The first character after Test MUST be a capital letter
+    func TestSample(t *testing.T) {
+         // your test
+    }
+
+
+func TestSimple(t *testing.T) {
+     expected := 2
+     actual := 3
+     if actual != expected {
+         t.Errorf("expected: %d, actual: %d", expected, actual)
+    }
+ }
+
+ func (c *T) Error(args ...interface{})
+ func (c *T) Errorf(format string, args ...interface{})
+ func (c *T) Fail()
+ func (c *T) FailNow()
+ func (c *T) Failed() bool
+ func (c *T) Fatal(args ...interface{})
+ func (c *T) Fatalf(format string, args ...interface{})
+ func (c *T) Helper()
+ func (c *T) Log(args ...interface{})
+ func (c *T) Logf(format string, args ...interface{})
+ func (c *T) Name() string
+ func (t *T) Parallel()
+ func (t *T) Run(name string, f func(t *T)) bool
+ func (c *T) Skip(args ...interface{})
+ func (c *T) SkipNow()
+ func (c *T) Skipf(format string, args ...interface{})
+ func (c *T) Skipped() bool
+
+
+
+ go test [Package path]
+ go test ./...
+ go test -run Foo # Run top-level tests matching "Foo", such as "TestFooBar".
+ go test -run Foo/A= # For top-level tests matching "Foo", run subtests matching "A=".
+ go test -run /A=1 # For all top-level tests, run subtests matching "A=1".
+
+
+ go test -v
+
+
+ check in runtime by calling testing.Verbose()
+ func TestVerbose(t *testing.T) {
+  t.Log("only printed in verbose mode")
+
+  if testing.Verbose() {
+    log.Println("some vrebose, but really useful info")
+  }
+ }
+
+
+ go test -short
+
+ func TestShort(t *testing.T) {
+  // Can't be quicker
+ }
+ func TestShortNotSoShort(t *testing.T) {
+  if testing.Short() {
+  t.Skip("Skip in short mode") // needs verbose to show this message
+  }
+  time.Sleep(3 * time.Second)
+ }
+
+ go test -v -short -run TestShort
+
+
+
+
+ Helper functions
+
+
+
+ Table Test
+
+ func TestTableSimple(t *testing.T) {
+  tcs := []struct {
+  name string
+  val float64
+  want float64
+  }{
+  {name: "the positive", val: 42, want: 42},
+  {name: "the negative", val: -42, want: 42},
+  {name: "zero", val: 0, want: 0},
+  }
+  for _, tc := range tcs {
+  t.Run(tc.name, func(t *testing.T) {
+  got := math.Abs(tc.val)
+  if tc.want != got {
+  t.Errorf("want: %f, got: %f", tc.want, got)
+  }
+  })
+  }
+ }
+
+
+ Parallel
+
+ func TestTableParallel(t *testing.T) {
+  tcs := []struct {
+  name string
+  sleep time.Duration
+  }{
+  {name: "1s", sleep: 1 * time.Second},
+  {name: "2s", sleep: 2 * time.Second},
+  {name: "3s", sleep: 3 * time.Second},
+  }
+  for _, tc := range tcs {
+  t.Run(tc.name, func(t *testing.T) {
+ tt..PPaarraalllleell(())
+  t.Log("running ", tc.name)
+  time.Sleep(tc.sleep)
+  })
+  }
+ }
+
+ t.Parallel()
+ The goroutines are sharing the variable tc
+ !
+  for _, tc := range tcs {
+  t.Run(tc.name, func(t *testing.T) {
+  t.Parallel()
+ tt..LLoogg((""rruunnnniinngg "",, ttcc..nnaammee))
+  time.Sleep(tc.sleep)
+  })
+  }

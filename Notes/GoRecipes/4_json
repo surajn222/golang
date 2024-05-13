@@ -1,0 +1,101 @@
+JSON
+
+signature
+code block
+mark
+specify
+
+
+How does JSON work in Golang
+What is the use of JSON tags
+
+
+5-1. Encoding and Decoding JSON
+
+
+import (
+       "encoding/json"
+)
+
+
+Marshal:
+       Parsing a value of struct type into JSON:
+
+       Here is the signature of function Marshal:
+              func Marshal(v interface{}) ([]byte, error)
+
+       The function Marshal returns two values:
+              1. the encoded JSON data as slice byte(known as JSON Object) and
+              2. an error value.
+
+       Struct:
+              type Employee struct {
+                      ID                            int
+                      FirstName, LastName, JobTitle string
+              }
+
+       The following code block creates an instance of Employee struct and parses the value into JSON Object.
+              emp := Employee{
+                       ID:        100,
+                       FirstName: "Shiju",
+                       LastName:  "Varghese",
+                       JobTitle:  "Architect",
+               }
+
+              // Encoding to JSON Object
+              data, err := json.Marshal(emp)
+
+
+Unmarshal:
+       The function Unmarshal of the json package is used to decode JSON values into Go values.
+
+       Signature
+              func Unmarshal(data []byte, v interface{}) error
+
+       The function Unmarshal parses the JSON-encoded data and stores the result into the second argument (v interface{}).
+
+       The following code block decodes JSON data and stores the result into the value of the Employee struct:
+              b := []byte(`{"ID":101,"FirstName":"Irene","LastName":"Rose","JobTitle":"Developer"}`) //The JSON data is provided as a raw string literal using the back quotes. Within the back quotes, any character is valid except for the back quote.
+
+              var emp1 Employee
+              err = json.Unmarshal(b, &emp1) // Decoding JSON data into the value of Employee struct
+
+       The preceding statements parse the JSON data of variable b and store the result into the variable emp1.
+
+       Now you can read the fields of the Employee struct like a normal struct value as shown here:
+              fmt.Printf("ID:%d, Name:%s %s, JobTitle:%s", emp1.ID, emp1.FirstName, emp1.LastName, emp1.JobTitle)
+
+
+
+Struct Tags
+       When you encode values of struct type into JSON, you might need to use different fields in the JSON encoding than struct type’s fields.
+
+       For example, you would start with an uppercase letter to specify the name of struct fields to mark them as exported fields, but it’s common use for the elements to start with lowercase letters in JSON.
+
+       Here we can use struct tags to map the names of struct fields with the names of fields in JSON to be used when encoding and decoding JSON objects.
+
+       Here is the Employee struct specified with tags to be used and different names in JSON encoding:
+              type Employee struct {
+                     ID        int     `json:"id,omitempty"`
+                     FirstName string  `json:"firstname"`
+                     LastName  string  `json:"lastname"`
+                     JobTitle  string  `json:"job"`
+              }
+
+       Note that back quotes (``) are used to specify tags.
+       Within the quotes, you put the metadata known as tags, for package json.
+       Within the quotes, any character is valid except another back quote.
+       The struct field ID is tagged with id for JSON representation.
+       The omitempty flag specifies that the field is not being included in the JSON representation if that field has a default value.
+       struct ---> JSON Object
+              If you are not providing a value for the ID field of the Employee struct, the output of the JSON object doesn’t include the id field when you parse the Employee values to JSON Object.
+       All fields of the Employee struct are tagged with different names for JSON data.
+
+       Skip:
+              If you want to skip fields from the struct, you can give the tag name as "-". The User struct shown here specifies that the field Password must be skipped when encoding and decoding JSON objects:
+                     type User struct {
+                            UserName string `json:"user"` Password string `json:"-"`
+                     }
+
+
+
