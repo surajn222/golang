@@ -1,0 +1,63 @@
+@startuml
+
+top to bottom direction
+
+' Box for main
+artifact "main"{
+  ' Grouping func_sender_channel_1 and func_sender_channel_2 horizontally
+  artifact func_sender_channel_1 [
+    func
+        make sender_channel_1
+        call go_routine_1
+        c1 = return sender_channel_1
+  ]
+
+  artifact func_sender_channel_2 [
+    func
+        make sender_channel_2
+        call go_routine_2
+        c2 = return sender_channel_2
+  ]
+
+    artifact for_loop [
+
+    for loop
+      receive and print data from c1
+      receive and print data from c2
+  ]
+
+
+}
+
+' Box for go_routine_1 linked to func_sender_channel_1
+artifact go_routine_1 [
+  // send data to channel
+  go_routine_1
+      for i := 0; i < 10; i++ {
+        c <- fmt.Sprintf("%s %d", msg, i)
+        time.Sleep(time.Duration(rand.Intn(1e3)) * time.Millisecond)
+      }
+
+      // The sender should close the channel
+      close(c)
+]
+
+' Box for go_routine_2 linked to func_sender_channel_2
+artifact go_routine_2 [
+  // send data to channel
+  go_routine_2
+  for i := 0; i < 10; i++ {
+    c <- fmt.Sprintf("%s %d", msg, i)
+    time.Sleep(time.Duration(rand.Intn(1e3)) * time.Millisecond)
+  }
+
+  // The sender should close the channel
+  close(c)
+]
+
+func_sender_channel_1 -right-> go_routine_1
+func_sender_channel_2 -right-> go_routine_2
+func_sender_channel_1 -down-> func_sender_channel_2
+func_sender_channel_2 -down-> for_loop
+
+@enduml

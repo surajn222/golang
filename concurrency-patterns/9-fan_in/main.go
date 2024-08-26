@@ -1,0 +1,1 @@
+package __simple_goroutine

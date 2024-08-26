@@ -1,0 +1,118 @@
+@startuml
+
+top to bottom direction
+
+artifact message [
+    type Message struct {
+        str  string
+        wait chan bool
+    }
+]
+
+' Box for main
+artifact "main"{
+  ' Grouping func_sender_channel_1 and func_sender_channel_2 horizontally
+  artifact func_sender_channel_1 [
+    func
+        make sender_channel_1
+        call go_routine_1
+        sender_channel_1 = return sender_channel_1
+  ]
+
+  artifact func_sender_channel_2 [
+    func
+        make sender_channel_2
+        call go_routine_2
+        sender_channel_2 = return sender_channel_2
+  ]
+
+    artifact for_loop [
+        receiver = fanInSimple(sender_channel_1, sender_channel_2, ...)
+
+        for loop
+            print data from receiver_channel_1
+            print data from receiver_channel_2
+
+            msg.wait <- true
+            msg.wait <- true
+    ]
+}
+
+artifact fanInSimple [
+    func fanInSimple
+        make receiver channel
+
+        for loop
+            go sender_receiver_1
+            go sender_receiver_2
+            .
+            .
+            .
+
+    return receiver channel
+
+]
+
+artifact sender_receiver_1 [
+sender_receiver_1
+    receive data from sender_channel_1
+    send data to receiver channel
+]
+
+artifact sender_receiver_2 [
+sender_receiver_2
+    receive data from sender_channel_2
+    send data to receiver channel
+]
+
+' Box for go_routine_1 linked to func_sender_channel_1
+artifact go_routine_1 [
+  // send data to channel
+  go_routine_1
+	go func() {                  // we launch goroutine inside a function.
+		for i := 0; ; i++ {
+			c <- Message{
+				str:  fmt.Sprintf("%s %d", msg, i),
+				wait: waitForIt,
+			}
+			time.Sleep(time.Duration(rand.Intn(1e3)) * time.Millisecond)
+
+			// every time the goroutine send message.
+			// This code waits until the value to be received.
+			<-waitForIt
+		}
+
+	}()
+]
+
+' Box for go_routine_2 linked to func_sender_channel_2
+artifact go_routine_2 [
+  // send data to channel
+  go_routine_2
+	go func() {                  // we launch goroutine inside a function.
+		for i := 0; ; i++ {
+			c <- Message{
+				str:  fmt.Sprintf("%s %d", msg, i),
+				wait: waitForIt,
+			}
+			time.Sleep(time.Duration(rand.Intn(1e3)) * time.Millisecond)
+
+			// every time the goroutine send message.
+			// This code waits until the value to be received.
+			<-waitForIt
+		}
+
+	}()
+]
+
+func_sender_channel_1 -right-> go_routine_1
+func_sender_channel_2 -right-> go_routine_2
+func_sender_channel_1 -down-> func_sender_channel_2
+func_sender_channel_2 -down-> for_loop
+for_loop -right-> fanInSimple
+fanInSimple -- sender_receiver_1
+fanInSimple -- sender_receiver_2
+
+
+
+@enduml

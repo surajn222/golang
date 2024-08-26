@@ -1,0 +1,97 @@
+@startuml
+
+left to right direction
+
+' Define artifacts
+artifact goroutine_sender_1 [
+  goroutine_sender_1
+
+	waitForIt := make(chan bool) // share between all messages
+	go func() {                  // we launch goroutine inside a function.
+		for i := 0; ; i++ {
+			c <- Message{
+				str:  fmt.Sprintf("%s %d", msg, i),
+				wait: waitForIt,
+			}
+			time.Sleep(time.Duration(rand.Intn(1e3)) * time.Millisecond)
+
+			// every time the goroutine send message.
+			// This code waits until the value to be received.
+			<-waitForIt
+		}
+
+	}()
+]
+
+artifact goroutine_sender_2 [
+  goroutine_sender_2
+
+	waitForIt := make(chan bool) // share between all messages
+	go func() {                  // we launch goroutine inside a function.
+		for i := 0; ; i++ {
+			c <- Message{
+				str:  fmt.Sprintf("%s %d", msg, i),
+				wait: waitForIt,
+			}
+			time.Sleep(time.Duration(rand.Intn(1e3)) * time.Millisecond)
+
+			// every time the goroutine send message.
+			// This code waits until the value to be received.
+			<-waitForIt
+		}
+
+	}()
+]
+
+artifact message [
+  type Message struct {
+    str  string
+    wait chan bool
+  }
+]
+
+artifact goroutine_receiver_sender_1 [
+  goroutine_receiver_sender_1
+
+	for i := range inputs {
+		input := inputs[i]
+		go func() {
+			for {
+				c <- <-input
+			}
+		}()
+	}
+
+]
+
+artifact goroutine_receiver_sender_2 [
+  goroutine_receiver_sender_2
+
+  	for i := range inputs {
+  		input := inputs[i]
+  		go func() {
+  			for {
+  				c <- <-input
+  			}
+  		}()
+  	}
+]
+
+artifact receiver_print [
+  receiver_print
+  print message_1
+  print message_2
+
+  send true to message_1.wait_chan
+  send true to message_2.wait_chan
+]
+
+' Define connections
+
+goroutine_sender_1 --> goroutine_receiver_sender_1
+goroutine_receiver_sender_1 --> receiver_print
+
+goroutine_sender_2 --> goroutine_receiver_sender_2
+goroutine_receiver_sender_2 --> receiver_print
+
+@enduml
