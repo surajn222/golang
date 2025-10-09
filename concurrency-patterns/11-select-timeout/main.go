@@ -22,14 +22,16 @@ func main() {
 	c := boring("Joe")
 
 	// timeout for the whole conversation
-	timeout := time.After(5 * time.Second)
+	timeout := time.After(1 * time.Second)
+loop:
 	for {
 		select {
 		case s := <-c:
 			fmt.Println(s)
 		case <-timeout:
 			fmt.Println("no response, you talk too slow")
-			return
+			break loop
 		}
 	}
+	fmt.Println("no response, you talk too slow")
 }
